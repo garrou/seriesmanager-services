@@ -1,0 +1,79 @@
+package controllers
+
+import (
+	"net/http"
+	"services-series-manager/dto"
+	"services-series-manager/helpers"
+	"services-series-manager/models"
+	"services-series-manager/services"
+
+	"github.com/gin-gonic/gin"
+)
+
+type AuthController interface {
+	Routes(e *gin.Engine)
+	Register(ctx *gin.Context)
+	Login(ctx *gin.Context)
+}
+
+type authController struct {
+	authService services.AuthService
+	jwtHelper   helpers.JwtHelper
+}
+
+func NewAuthController(userService services.AuthService, jwtHelper helpers.JwtHelper) AuthController {
+	return &authController{
+		authService: userService,
+		jwtHelper:   jwtHelper,
+	}
+}
+
+func (a *authController) Routes(e *gin.Engine) {
+	e.POST("/register", a.Register)
+	e.POST("/login", a.Login)
+}
+
+func (a *authController) Register(ctx *gin.Context) {
+	var userDto dto.UserCreateDto
+	errDto := ctx.ShouldBind(&userDto)
+
+	if errDto != nil {
+		response := helpers.NewErrorResponse("Informations invalides", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	}
+	if userDto.Password != userDto.Confirm {
+		response := helpers.NewErrorResponse("Le mot de passe et la confirmation du mot de passe sont différents", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	}
+	if a.authService.IsDuplicateEmail(userDto.Email) {
+		response := helpers.NewErrorResponse("Un email est déjà associé à un compte", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+	} else {
+		a.authService.Register(userDto)
+		response := helpers.NewResponse(true, "Compte créé", nil)
+		ctx.JSON(http.StatusCreated, response)
+	}
+}
+
+func (a *authController) Login(ctx *gin.Context) {
+	var userDto dto.UserDto
+	errDto := ctx.ShouldBind(&userDto)
+
+	if errDto != nil {
+		response := helpers.NewErrorResponse("Informations invalides", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	}
+	res := a.authService.Login(userDto.Email, userDto.Password)
+
+	if user, ok := res.(models.User); ok {
+		token := a.jwtHelper.GenerateToken(user.Id)
+		response := helpers.NewResponse(true, "OK", token)
+		ctx.JSON(http.StatusOK, response)
+		return
+	}
+	response := helpers.NewErrorResponse("Informations invalides", nil)
+	ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
+}
