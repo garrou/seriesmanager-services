@@ -8,6 +8,7 @@ import (
 type SeriesRepository interface {
 	Save(series models.Series) models.Series
 	FindByUserId(userId string) []models.Series
+	Exists(seriesId int, userId string) *gorm.DB
 }
 
 type seriesRepository struct {
@@ -31,4 +32,9 @@ func (s *seriesRepository) FindByUserId(userId string) []models.Series {
 		return series
 	}
 	return nil
+}
+
+func (s *seriesRepository) Exists(seriesId int, userId string) *gorm.DB {
+	var series models.Series
+	return s.db.Where("id = ? and fk_user = ?", seriesId, userId).Take(&series)
 }

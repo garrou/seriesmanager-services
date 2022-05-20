@@ -36,9 +36,7 @@ func (s *seriesController) Routes(e *gin.Engine) {
 
 func (s *seriesController) AddSeries(ctx *gin.Context) {
 	var seriesDto dto.SeriesCreateDto
-	errDto := ctx.ShouldBind(&seriesDto)
-
-	if errDto != nil {
+	if errDto := ctx.ShouldBind(&seriesDto); errDto != nil {
 		response := helpers.NewErrorResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
@@ -50,10 +48,16 @@ func (s *seriesController) AddSeries(ctx *gin.Context) {
 		panic(errToken.Error())
 	}
 	claims := token.Claims.(jwt.MapClaims)
-	seriesDto.FkUser = fmt.Sprintf("%s", claims["id"])
-	s.seriesService.AddSeries(seriesDto)
-	response := helpers.NewResponse(true, "Série ajoutée", nil)
-	ctx.JSON(http.StatusCreated, response)
+	seriesDto.User = fmt.Sprintf("%s", claims["id"])
+
+	if s.seriesService.IsDuplicateSeries(seriesDto) {
+		response := helpers.NewErrorResponse("Vous avez déjà ajouté cette série", nil)
+		ctx.AbortWithStatusJSON(http.StatusConflict, response)
+	} else {
+		s.seriesService.AddSeries(seriesDto)
+		response := helpers.NewResponse(true, "Série ajoutée", nil)
+		ctx.JSON(http.StatusCreated, response)
+	}
 }
 
 func (s *seriesController) GetAll(ctx *gin.Context) {

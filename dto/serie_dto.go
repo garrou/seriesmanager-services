@@ -1,6 +1,6 @@
 package dto
 
 type SeriesCreateDto struct {
-	Id     int    `json:"id" form:"id" binding:"required"`
-	FkUser string `json:"omitempty"`
+	Id   int    `json:"id" binding:"required"`
+	User string `json:"omitempty"`
 }

@@ -35,9 +35,7 @@ func (u *userController) Routes(e *gin.Engine) {
 
 func (u *userController) Update(ctx *gin.Context) {
 	var userDto dto.UserUpdateDto
-	errDto := ctx.ShouldBind(&userDto)
-
-	if errDto != nil {
+	if errDto := ctx.ShouldBind(&userDto); errDto != nil {
 		response := helpers.NewErrorResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return

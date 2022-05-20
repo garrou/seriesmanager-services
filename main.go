@@ -23,6 +23,9 @@ var (
 	userService    = services.NewUserService(userRepository)
 	userController = controllers.NewUserController(userService, jwtHelper)
 
+	searchService    = services.NewSearchService()
+	searchController = controllers.NewSearchController(searchService, jwtHelper)
+
 	seriesRepository = repositories.NewSeriesRepository(db)
 	seriesService    = services.NewSeriesService(seriesRepository)
 	seriesController = controllers.NewSeriesController(seriesService, jwtHelper)
@@ -31,6 +34,7 @@ var (
 func main() {
 
 	defer database.Close(db)
+
 	router := gin.Default()
 	err := router.SetTrustedProxies([]string{"127.0.0.0"})
 
@@ -43,6 +47,7 @@ func main() {
 
 	authController.Routes(router)
 	userController.Routes(router)
+	searchController.Routes(router)
 	seriesController.Routes(router)
 
 	if err := router.Run("localhost:8080"); err != nil {

@@ -14,7 +14,7 @@ func Open() *gorm.DB {
 	errEnv := godotenv.Load()
 
 	if errEnv != nil {
-		panic(errEnv)
+		panic(errEnv.Error())
 	}
 	user := os.Getenv("DB_USER")
 	pass := os.Getenv("DB_PASS")
@@ -25,7 +25,7 @@ func Open() *gorm.DB {
 	db, errDb := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if errDb != nil {
-		panic(errDb)
+		panic(errDb.Error())
 	}
 	return db
 }
@@ -34,11 +34,9 @@ func Close(db *gorm.DB) {
 	dbSql, errDb := db.DB()
 
 	if errDb != nil {
-		panic(errDb)
+		panic(errDb.Error())
 	}
-	errClose := dbSql.Close()
-
-	if errClose != nil {
-		panic(errClose)
+	if errClose := dbSql.Close(); errClose != nil {
+		panic(errClose.Error())
 	}
 }

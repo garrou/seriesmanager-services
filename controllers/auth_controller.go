@@ -35,9 +35,7 @@ func (a *authController) Routes(e *gin.Engine) {
 
 func (a *authController) Register(ctx *gin.Context) {
 	var userDto dto.UserCreateDto
-	errDto := ctx.ShouldBind(&userDto)
-
-	if errDto != nil {
+	if errDto := ctx.ShouldBind(&userDto); errDto != nil {
 		response := helpers.NewErrorResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
@@ -49,7 +47,7 @@ func (a *authController) Register(ctx *gin.Context) {
 	}
 	if a.authService.IsDuplicateEmail(userDto.Email) {
 		response := helpers.NewErrorResponse("Un email est déjà associé à un compte", nil)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		ctx.AbortWithStatusJSON(http.StatusConflict, response)
 	} else {
 		a.authService.Register(userDto)
 		response := helpers.NewResponse(true, "Compte créé", nil)
@@ -59,9 +57,7 @@ func (a *authController) Register(ctx *gin.Context) {
 
 func (a *authController) Login(ctx *gin.Context) {
 	var userDto dto.UserDto
-	errDto := ctx.ShouldBind(&userDto)
-
-	if errDto != nil {
+	if errDto := ctx.ShouldBind(&userDto); errDto != nil {
 		response := helpers.NewErrorResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
