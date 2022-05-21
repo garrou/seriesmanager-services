@@ -34,6 +34,7 @@ func (s *seriesController) Routes(e *gin.Engine) {
 	}
 }
 
+// AddSeries adds a series to the authenticated user account
 func (s *seriesController) AddSeries(ctx *gin.Context) {
 	var seriesDto dto.SeriesCreateDto
 	if errDto := ctx.ShouldBind(&seriesDto); errDto != nil {
@@ -60,6 +61,7 @@ func (s *seriesController) AddSeries(ctx *gin.Context) {
 	}
 }
 
+// GetAll returns all series of the authenticated user
 func (s *seriesController) GetAll(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	token, errToken := s.jwtHelper.ValidateToken(authHeader)

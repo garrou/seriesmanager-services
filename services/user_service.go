@@ -8,6 +8,7 @@ import (
 )
 
 type UserService interface {
+	Get(id string) interface{}
 	Update(user dto.UserUpdateDto) interface{}
 }
 
@@ -17,6 +18,10 @@ type userService struct {
 
 func NewUserService(userRepository repositories.UserRepository) UserService {
 	return &userService{userRepository: userRepository}
+}
+
+func (u *userService) Get(id string) interface{} {
+	return u.userRepository.FindById(id)
 }
 
 func (u *userService) Update(toUpdate dto.UserUpdateDto) interface{} {
