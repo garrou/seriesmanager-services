@@ -1,4 +1,4 @@
-module services-series-manager
+module seriesmanager-services
 
 go 1.18
 
@@ -11,8 +11,6 @@ require (
 require github.com/golang-jwt/jwt v3.2.2+incompatible
 
 require github.com/google/uuid v1.3.0
-
-require github.com/gin-contrib/cors v1.3.1
 
 require (
 	github.com/gin-contrib/sse v0.1.0 // indirect

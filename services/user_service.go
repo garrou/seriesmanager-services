@@ -1,10 +1,10 @@
 package services
 
 import (
-	"services-series-manager/dto"
-	"services-series-manager/helpers"
-	"services-series-manager/models"
-	"services-series-manager/repositories"
+	"seriesmanager-services/dto"
+	"seriesmanager-services/helpers"
+	"seriesmanager-services/models"
+	"seriesmanager-services/repositories"
 )
 
 type UserService interface {

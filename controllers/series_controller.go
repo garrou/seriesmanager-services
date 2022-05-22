@@ -5,10 +5,10 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"net/http"
-	"services-series-manager/dto"
-	"services-series-manager/helpers"
-	"services-series-manager/middlewares"
-	"services-series-manager/services"
+	"seriesmanager-services/dto"
+	"seriesmanager-services/helpers"
+	"seriesmanager-services/middlewares"
+	"seriesmanager-services/services"
 )
 
 type SeriesController interface {

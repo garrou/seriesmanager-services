@@ -2,7 +2,7 @@ package middlewares
 
 import (
 	"net/http"
-	"services-series-manager/helpers"
+	"seriesmanager-services/helpers"
 
 	"github.com/gin-gonic/gin"
 )

@@ -4,9 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 
 	"net/http"
-	"services-series-manager/helpers"
-	"services-series-manager/middlewares"
-	"services-series-manager/services"
+	"seriesmanager-services/helpers"
+	"seriesmanager-services/middlewares"
+	"seriesmanager-services/services"
 )
 
 type SearchController interface {

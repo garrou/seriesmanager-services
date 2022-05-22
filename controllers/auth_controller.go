@@ -2,10 +2,10 @@ package controllers
 
 import (
 	"net/http"
-	"services-series-manager/dto"
-	"services-series-manager/helpers"
-	"services-series-manager/models"
-	"services-series-manager/services"
+	"seriesmanager-services/dto"
+	"seriesmanager-services/helpers"
+	"seriesmanager-services/models"
+	"seriesmanager-services/services"
 
 	"github.com/gin-gonic/gin"
 )

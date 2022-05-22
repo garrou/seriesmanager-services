@@ -4,11 +4,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"services-series-manager/dto"
-	"services-series-manager/helpers"
+	"seriesmanager-services/dto"
+	"seriesmanager-services/helpers"
 
-	"services-series-manager/models"
-	"services-series-manager/repositories"
+	"seriesmanager-services/models"
+	"seriesmanager-services/repositories"
 )
 
 type SeriesService interface {

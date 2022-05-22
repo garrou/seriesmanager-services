@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"services-series-manager/helpers"
-	"services-series-manager/models"
+	"seriesmanager-services/helpers"
+	"seriesmanager-services/models"
 )
 
 type SearchService interface {

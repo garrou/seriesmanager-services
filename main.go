@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/gin-contrib/cors"
 	"log"
-	"services-series-manager/controllers"
-	"services-series-manager/database"
-	"services-series-manager/helpers"
-	"services-series-manager/repositories"
-	"services-series-manager/services"
+	"seriesmanager-services/controllers"
+	"seriesmanager-services/database"
+	"seriesmanager-services/helpers"
+	"seriesmanager-services/middlewares"
+	"seriesmanager-services/repositories"
+	"seriesmanager-services/services"
 
 	"github.com/gin-gonic/gin"
 )
@@ -36,15 +36,11 @@ func main() {
 	defer database.Close(db)
 
 	router := gin.Default()
-	err := router.SetTrustedProxies([]string{"127.0.0.0"})
+	router.Use(middlewares.Cors())
 
-	if err != nil {
-		log.Fatal(err)
+	if err := router.SetTrustedProxies(nil); err != nil {
+		panic(err.Error())
 	}
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"}
-	router.Use(cors.New(config))
-
 	authController.Routes(router)
 	userController.Routes(router)
 	searchController.Routes(router)

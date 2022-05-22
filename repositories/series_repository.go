@@ -2,7 +2,7 @@ package repositories
 
 import (
 	"gorm.io/gorm"
-	"services-series-manager/models"
+	"seriesmanager-services/models"
 )
 
 type SeriesRepository interface {

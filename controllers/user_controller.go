@@ -5,11 +5,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
 	"net/http"
-	"services-series-manager/dto"
-	"services-series-manager/helpers"
-	"services-series-manager/middlewares"
-	"services-series-manager/models"
-	"services-series-manager/services"
+	"seriesmanager-services/dto"
+	"seriesmanager-services/helpers"
+	"seriesmanager-services/middlewares"
+	"seriesmanager-services/models"
+	"seriesmanager-services/services"
 )
 
 type UserController interface {
@@ -46,7 +46,7 @@ func (u *userController) Get(ctx *gin.Context) {
 	res := u.userService.Get(fmt.Sprintf("%s", claims["id"]))
 
 	if _, ok := res.(models.User); ok {
-		response := helpers.NewResponse(true, "OK", nil)
+		response := helpers.NewResponse(true, "Authentifié", nil)
 		ctx.JSON(http.StatusOK, response)
 		return
 	}
