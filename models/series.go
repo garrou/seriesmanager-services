@@ -1,6 +1,6 @@
 package models
 
-// SearchSeries represents the result when search
+// SearchSeries represents a searched or discovered series
 type SearchSeries struct {
 	Series []struct {
 		Id     int         `json:"id"`
@@ -20,6 +20,8 @@ type PreviewSeries struct {
 
 // Series represents a series in database
 type Series struct {
-	Id   int
-	User string `gorm:"column:fk_user"`
+	Id     int
+	Title  string
+	Poster string
+	User   string `gorm:"column:fk_user"`
 }

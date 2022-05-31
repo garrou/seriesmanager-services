@@ -24,10 +24,23 @@ func NewSearchController(searchService services.SearchService, jwtHelper helpers
 }
 
 func (s *searchController) Routes(e *gin.Engine) {
-	routes := e.Group("/search", middlewares.AuthorizeJwt(s.jwtHelper))
+	routes := e.Group("/api", middlewares.AuthorizeJwt(s.jwtHelper))
 	{
-		routes.GET("/:name", s.SearchSeriesByName)
+		routes.GET("/discover", s.Discover)
+		routes.GET("/search/:name", s.SearchSeriesByName)
 	}
+}
+
+func (s *searchController) Discover(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
+	_, errToken := s.jwtHelper.ValidateToken(authHeader)
+
+	if errToken != nil {
+		panic(errToken.Error())
+	}
+	series := s.searchService.Discover()
+	response := helpers.NewResponse(true, "", series)
+	ctx.JSON(http.StatusCreated, response)
 }
 
 func (s *searchController) SearchSeriesByName(ctx *gin.Context) {

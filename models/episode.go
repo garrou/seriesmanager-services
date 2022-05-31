@@ -14,6 +14,8 @@ type PreviewEpisode struct {
 }
 
 type Episode struct {
-	Id   int
-	User string `gorm:"column:fk_user"`
+	Id      int
+	User    string `gorm:"column:fk_user"`
+	Episode int
+	Season  int
 }

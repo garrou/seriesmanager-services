@@ -29,8 +29,9 @@ func NewSeriesService(seriesRepository repositories.SeriesRepository) SeriesServ
 
 func (s *seriesService) AddSeries(series dto.SeriesCreateDto) models.Series {
 	toCreate := models.Series{
-		Id:   series.Id,
-		User: series.User,
+		Id:    series.Id,
+		User:  series.User,
+		Title: series.Title,
 	}
 	return s.seriesRepository.Save(toCreate)
 }

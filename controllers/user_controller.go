@@ -27,7 +27,7 @@ func NewUserController(userService services.UserService, jwtHelper helpers.JwtHe
 }
 
 func (u *userController) Routes(e *gin.Engine) {
-	routes := e.Group("/user", middlewares.AuthorizeJwt(u.jwtHelper))
+	routes := e.Group("/api/user", middlewares.AuthorizeJwt(u.jwtHelper))
 	{
 		routes.GET("/", u.Get)
 		routes.PATCH("/profile", u.Update)

@@ -27,7 +27,7 @@ func NewSeriesController(seriesService services.SeriesService, jwtHelper helpers
 }
 
 func (s *seriesController) Routes(e *gin.Engine) {
-	routes := e.Group("/series", middlewares.AuthorizeJwt(s.jwtHelper))
+	routes := e.Group("/api/series", middlewares.AuthorizeJwt(s.jwtHelper))
 	{
 		routes.POST("/", s.AddSeries)
 		routes.GET("/", s.GetAll)

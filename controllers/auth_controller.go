@@ -29,8 +29,11 @@ func NewAuthController(userService services.AuthService, jwtHelper helpers.JwtHe
 }
 
 func (a *authController) Routes(e *gin.Engine) {
-	e.POST("/register", a.Register)
-	e.POST("/login", a.Login)
+	routes := e.Group("/api")
+	{
+		routes.POST("/register", a.Register)
+		routes.POST("/login", a.Login)
+	}
 }
 
 func (a *authController) Register(ctx *gin.Context) {

@@ -8,5 +8,7 @@ CREATE TABLE users (
 
 CREATE TABLE series (
     id NUMERIC PRIMARY KEY,
-    fk_user VARCHAR NOT NULL REFERENCES users(id)
+    title VARCHAR(100) NOT NULL,
+    poster VARCHAR(150),
+    fk_user VARCHAR(50) NOT NULL REFERENCES users(id)
 );
