@@ -5,5 +5,6 @@ type PreviewSeasons struct {
 		Number   int    `json:"number"`
 		Episodes int    `json:"episodes"`
 		Image    string `json:"image"`
+		FkSeries int    `json:"seriesId"`
 	}
 }

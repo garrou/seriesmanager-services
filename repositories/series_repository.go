@@ -8,6 +8,7 @@ import (
 type SeriesRepository interface {
 	Save(series models.Series) models.Series
 	FindByUserId(userId string) []models.Series
+	FindByUserIdAndTitle(userId, title string) []models.Series
 	Exists(seriesId int, userId string) *gorm.DB
 }
 
@@ -27,6 +28,16 @@ func (s *seriesRepository) Save(series models.Series) models.Series {
 func (s *seriesRepository) FindByUserId(userId string) []models.Series {
 	var series []models.Series
 	res := s.db.Where("fk_user = ?", userId).Find(&series)
+
+	if res.Error == nil {
+		return series
+	}
+	return nil
+}
+
+func (s *seriesRepository) FindByUserIdAndTitle(userId, title string) []models.Series {
+	var series []models.Series
+	res := s.db.Where("fk_user = ? AND UPPER(title) LIKE UPPER(?)", userId, "%"+title+"%").Find(&series)
 
 	if res.Error == nil {
 		return series

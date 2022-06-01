@@ -15,6 +15,7 @@ type SeriesController interface {
 	Routes(e *gin.Engine)
 	AddSeries(ctx *gin.Context)
 	GetAll(ctx *gin.Context)
+	GetByTitle(ctx *gin.Context)
 }
 
 type seriesController struct {
@@ -31,6 +32,7 @@ func (s *seriesController) Routes(e *gin.Engine) {
 	{
 		routes.POST("/", s.AddSeries)
 		routes.GET("/", s.GetAll)
+		routes.GET("/titles/:title", s.GetByTitle)
 	}
 }
 
@@ -55,8 +57,8 @@ func (s *seriesController) AddSeries(ctx *gin.Context) {
 		response := helpers.NewErrorResponse("Vous avez déjà ajouté cette série", nil)
 		ctx.AbortWithStatusJSON(http.StatusConflict, response)
 	} else {
-		s.seriesService.AddSeries(seriesDto)
-		response := helpers.NewResponse(true, "Série ajoutée", nil)
+		series := s.seriesService.AddSeries(seriesDto)
+		response := helpers.NewResponse(true, "Série ajoutée", series)
 		ctx.JSON(http.StatusCreated, response)
 	}
 }
@@ -71,7 +73,22 @@ func (s *seriesController) GetAll(ctx *gin.Context) {
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	userId := fmt.Sprintf("%s", claims["id"])
-	res := s.seriesService.GetAll(userId)
-	response := helpers.NewResponse(true, "", res)
+	series := s.seriesService.GetAll(userId)
+	response := helpers.NewResponse(true, "", series)
+	ctx.JSON(http.StatusOK, response)
+}
+
+// GetByTitle returns all series with title matching
+func (s *seriesController) GetByTitle(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
+	token, errToken := s.jwtHelper.ValidateToken(authHeader)
+
+	if errToken != nil {
+		panic(errToken.Error())
+	}
+	claims := token.Claims.(jwt.MapClaims)
+	userId := fmt.Sprintf("%s", claims["id"])
+	series := s.seriesService.GetByTitle(userId, ctx.Param("title"))
+	response := helpers.NewResponse(true, "", series)
 	ctx.JSON(http.StatusOK, response)
 }

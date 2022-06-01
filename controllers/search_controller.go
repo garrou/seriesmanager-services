@@ -24,10 +24,11 @@ func NewSearchController(searchService services.SearchService, jwtHelper helpers
 }
 
 func (s *searchController) Routes(e *gin.Engine) {
-	routes := e.Group("/api", middlewares.AuthorizeJwt(s.jwtHelper))
+	routes := e.Group("/api/search", middlewares.AuthorizeJwt(s.jwtHelper))
 	{
 		routes.GET("/discover", s.Discover)
-		routes.GET("/search/:name", s.SearchSeriesByName)
+		routes.GET("/names/:name", s.SearchSeriesByName)
+		routes.GET("/series/:id", s.SearchSeriesById)
 	}
 }
 
@@ -40,7 +41,7 @@ func (s *searchController) Discover(ctx *gin.Context) {
 	}
 	series := s.searchService.Discover()
 	response := helpers.NewResponse(true, "", series)
-	ctx.JSON(http.StatusCreated, response)
+	ctx.JSON(http.StatusOK, response)
 }
 
 func (s *searchController) SearchSeriesByName(ctx *gin.Context) {
@@ -52,5 +53,17 @@ func (s *searchController) SearchSeriesByName(ctx *gin.Context) {
 	}
 	series := s.searchService.SearchSeriesByName(ctx.Param("name"))
 	response := helpers.NewResponse(true, "", series)
-	ctx.JSON(http.StatusCreated, response)
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (s *searchController) SearchSeriesById(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
+	_, errToken := s.jwtHelper.ValidateToken(authHeader)
+
+	if errToken != nil {
+		panic(errToken.Error())
+	}
+	series := s.searchService.SearchSeriesById(ctx.Param("id"))
+	response := helpers.NewResponse(true, "", series)
+	ctx.JSON(http.StatusOK, response)
 }

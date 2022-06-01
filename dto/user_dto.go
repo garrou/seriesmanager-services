@@ -12,7 +12,7 @@ type UserCreateDto struct {
 }
 
 type UserUpdateDto struct {
-	Id       string `json:"omitempty"`
+	Id       string
 	Email    string `json:"email" binding:"required" validate:"email,max:255"`
 	Password string `json:"password" validate:"min:8,max:255"`
 }

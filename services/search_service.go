@@ -11,6 +11,7 @@ import (
 type SearchService interface {
 	Discover() models.SearchSeries
 	SearchSeriesByName(name string) models.SearchSeries
+	SearchSeriesById(seriesId string) models.DetailsSeries
 }
 
 type searchService struct {
@@ -35,6 +36,17 @@ func (s *searchService) SearchSeriesByName(name string) models.SearchSeries {
 	apiKey := os.Getenv("API_KEY")
 	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/search?title=%s&key=%s", name, apiKey))
 	series := models.SearchSeries{}
+
+	if err := json.Unmarshal(body, &series); err != nil {
+		panic(err.Error())
+	}
+	return series
+}
+
+func (s *searchService) SearchSeriesById(seriesId string) models.DetailsSeries {
+	apiKey := os.Getenv("API_KEY")
+	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/display?id=%s&key=%s", seriesId, apiKey))
+	series := models.DetailsSeries{}
 
 	if err := json.Unmarshal(body, &series); err != nil {
 		panic(err.Error())

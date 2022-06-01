@@ -1,19 +1,15 @@
 package services
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
 	"seriesmanager-services/dto"
-	"seriesmanager-services/helpers"
-
 	"seriesmanager-services/models"
 	"seriesmanager-services/repositories"
 )
 
 type SeriesService interface {
-	AddSeries(series dto.SeriesCreateDto) models.Series
-	GetAll(userId string) []models.PreviewSeries
+	AddSeries(series dto.SeriesCreateDto) dto.SeriesPreviewDto
+	GetAll(userId string) []dto.SeriesPreviewDto
+	GetByTitle(userId, title string) []dto.SeriesPreviewDto
 	IsDuplicateSeries(series dto.SeriesCreateDto) bool
 }
 
@@ -27,27 +23,41 @@ func NewSeriesService(seriesRepository repositories.SeriesRepository) SeriesServ
 	}
 }
 
-func (s *seriesService) AddSeries(series dto.SeriesCreateDto) models.Series {
+func (s *seriesService) AddSeries(series dto.SeriesCreateDto) dto.SeriesPreviewDto {
 	toCreate := models.Series{
-		Id:    series.Id,
-		User:  series.User,
-		Title: series.Title,
+		Id:     series.Id,
+		Title:  series.Title,
+		Poster: series.Poster,
+		User:   series.User,
 	}
-	return s.seriesRepository.Save(toCreate)
+	s.seriesRepository.Save(toCreate)
+	return dto.SeriesPreviewDto{Id: series.Id, Title: series.Title, Poster: series.Poster}
 }
 
-func (s *seriesService) GetAll(userId string) []models.PreviewSeries {
-	apiKey := os.Getenv("API_KEY")
+func (s *seriesService) GetAll(userId string) []dto.SeriesPreviewDto {
+	var series []dto.SeriesPreviewDto
 	dbSeries := s.seriesRepository.FindByUserId(userId)
-	var series []models.PreviewSeries
 
 	for _, s := range dbSeries {
-		body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/display?id=%d&key=%s", s.Id, apiKey))
-		preview := models.PreviewSeries{}
+		series = append(series, dto.SeriesPreviewDto{
+			Id:     s.Id,
+			Title:  s.Title,
+			Poster: s.Poster,
+		})
+	}
+	return series
+}
 
-		if err := json.Unmarshal(body, &preview); err == nil {
-			series = append(series, preview)
-		}
+func (s *seriesService) GetByTitle(userId, title string) []dto.SeriesPreviewDto {
+	var series []dto.SeriesPreviewDto
+	dbSeries := s.seriesRepository.FindByUserIdAndTitle(userId, title)
+
+	for _, s := range dbSeries {
+		series = append(series, dto.SeriesPreviewDto{
+			Id:     s.Id,
+			Title:  s.Title,
+			Poster: s.Poster,
+		})
 	}
 	return series
 }
