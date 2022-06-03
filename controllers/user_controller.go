@@ -15,6 +15,7 @@ import (
 type UserController interface {
 	Routes(e *gin.Engine)
 	Update(ctx *gin.Context)
+	Get(ctx *gin.Context)
 }
 
 type userController struct {

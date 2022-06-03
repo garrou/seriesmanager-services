@@ -25,10 +25,11 @@ func NewSeriesService(seriesRepository repositories.SeriesRepository) SeriesServ
 
 func (s *seriesService) AddSeries(series dto.SeriesCreateDto) dto.SeriesPreviewDto {
 	toCreate := models.Series{
-		Id:     series.Id,
-		Title:  series.Title,
-		Poster: series.Poster,
-		User:   series.User,
+		Id:            series.Id,
+		Title:         series.Title,
+		Poster:        series.Poster,
+		EpisodeLength: series.EpisodeLength,
+		User:          series.User,
 	}
 	s.seriesRepository.Save(toCreate)
 	return dto.SeriesPreviewDto{Id: series.Id, Title: series.Title, Poster: series.Poster}
@@ -40,9 +41,10 @@ func (s *seriesService) GetAll(userId string) []dto.SeriesPreviewDto {
 
 	for _, s := range dbSeries {
 		series = append(series, dto.SeriesPreviewDto{
-			Id:     s.Id,
-			Title:  s.Title,
-			Poster: s.Poster,
+			Id:            s.Id,
+			Title:         s.Title,
+			Poster:        s.Poster,
+			EpisodeLength: s.EpisodeLength,
 		})
 	}
 	return series
@@ -54,9 +56,10 @@ func (s *seriesService) GetByTitle(userId, title string) []dto.SeriesPreviewDto 
 
 	for _, s := range dbSeries {
 		series = append(series, dto.SeriesPreviewDto{
-			Id:     s.Id,
-			Title:  s.Title,
-			Poster: s.Poster,
+			Id:            s.Id,
+			Title:         s.Title,
+			Poster:        s.Poster,
+			EpisodeLength: s.EpisodeLength,
 		})
 	}
 	return series

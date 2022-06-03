@@ -11,7 +11,9 @@ import (
 
 type SearchController interface {
 	Routes(e *gin.Engine)
-	SearchSeriesByName(ctx *gin.Context)
+	GetSeriesByName(ctx *gin.Context)
+	GetSeriesById(ctx *gin.Context)
+	GetSeasonsBySeriesId(ctx *gin.Context)
 }
 
 type searchController struct {
@@ -27,11 +29,13 @@ func (s *searchController) Routes(e *gin.Engine) {
 	routes := e.Group("/api/search", middlewares.AuthorizeJwt(s.jwtHelper))
 	{
 		routes.GET("/discover", s.Discover)
-		routes.GET("/names/:name", s.SearchSeriesByName)
-		routes.GET("/series/:id", s.SearchSeriesById)
+		routes.GET("/names/:name", s.GetSeriesByName)
+		routes.GET("/series/:id", s.GetSeriesById)
+		routes.GET("/series/:id/seasons", s.GetSeasonsBySeriesId)
 	}
 }
 
+// Discover calls api and returns random series
 func (s *searchController) Discover(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	_, errToken := s.jwtHelper.ValidateToken(authHeader)
@@ -44,7 +48,8 @@ func (s *searchController) Discover(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (s *searchController) SearchSeriesByName(ctx *gin.Context) {
+// GetSeriesByName calls api to get series by name
+func (s *searchController) GetSeriesByName(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	_, errToken := s.jwtHelper.ValidateToken(authHeader)
 
@@ -56,7 +61,8 @@ func (s *searchController) SearchSeriesByName(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (s *searchController) SearchSeriesById(ctx *gin.Context) {
+// GetSeriesById calls api to get series details by series id api
+func (s *searchController) GetSeriesById(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	_, errToken := s.jwtHelper.ValidateToken(authHeader)
 
@@ -65,5 +71,18 @@ func (s *searchController) SearchSeriesById(ctx *gin.Context) {
 	}
 	series := s.searchService.SearchSeriesById(ctx.Param("id"))
 	response := helpers.NewResponse(true, "", series)
+	ctx.JSON(http.StatusOK, response)
+}
+
+// GetSeasonsBySeriesId calls api to get seasons by series id api
+func (s *searchController) GetSeasonsBySeriesId(ctx *gin.Context) {
+	authHeader := ctx.GetHeader("Authorization")
+	_, errToken := s.jwtHelper.ValidateToken(authHeader)
+
+	if errToken != nil {
+		panic(errToken.Error())
+	}
+	seasons := s.searchService.SearchSeasonsBySeriesId(ctx.Param("id"))
+	response := helpers.NewResponse(true, "", seasons)
 	ctx.JSON(http.StatusOK, response)
 }

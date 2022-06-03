@@ -13,7 +13,7 @@ import (
 
 type SeriesController interface {
 	Routes(e *gin.Engine)
-	AddSeries(ctx *gin.Context)
+	PostSeries(ctx *gin.Context)
 	GetAll(ctx *gin.Context)
 	GetByTitle(ctx *gin.Context)
 }
@@ -30,14 +30,14 @@ func NewSeriesController(seriesService services.SeriesService, jwtHelper helpers
 func (s *seriesController) Routes(e *gin.Engine) {
 	routes := e.Group("/api/series", middlewares.AuthorizeJwt(s.jwtHelper))
 	{
-		routes.POST("/", s.AddSeries)
+		routes.POST("/", s.PostSeries)
 		routes.GET("/", s.GetAll)
 		routes.GET("/titles/:title", s.GetByTitle)
 	}
 }
 
-// AddSeries adds a series to the authenticated user account
-func (s *seriesController) AddSeries(ctx *gin.Context) {
+// PostSeries adds a series to the authenticated user account
+func (s *seriesController) PostSeries(ctx *gin.Context) {
 	var seriesDto dto.SeriesCreateDto
 	if errDto := ctx.ShouldBind(&seriesDto); errDto != nil {
 		response := helpers.NewErrorResponse("Informations invalides", nil)

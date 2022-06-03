@@ -36,6 +36,7 @@ func (a *authController) Routes(e *gin.Engine) {
 	}
 }
 
+// Register creates user
 func (a *authController) Register(ctx *gin.Context) {
 	var userDto dto.UserCreateDto
 	if errDto := ctx.ShouldBind(&userDto); errDto != nil {
@@ -58,6 +59,7 @@ func (a *authController) Register(ctx *gin.Context) {
 	}
 }
 
+// Login authenticate user
 func (a *authController) Login(ctx *gin.Context) {
 	var userDto dto.UserDto
 	if errDto := ctx.ShouldBind(&userDto); errDto != nil {

@@ -52,25 +52,12 @@ type DetailsSeries struct {
 	} `json:"show"`
 }
 
-func (d *DetailsSeries) ReplaceNilImages() {
-	if d.Series.Images.Box == "" {
-		d.Series.Images.Box = ""
-	}
-	if d.Series.Images.Banner == "" {
-		d.Series.Images.Banner = ""
-	}
-	if d.Series.Images.Poster == "" {
-		d.Series.Images.Poster = ""
-	}
-	if d.Series.Images.Show == "" {
-		d.Series.Images.Show = ""
-	}
-}
-
 // Series represents a series in database
 type Series struct {
-	Id     int
-	Title  string
-	Poster string
-	User   string `gorm:"column:fk_user"`
+	Id            int
+	Title         string
+	Poster        string
+	EpisodeLength int    `gorm:"column:episode_length"`
+	User          string `gorm:"column:fk_user"`
+	Sid           int    `gorm:"autoIncrement"`
 }

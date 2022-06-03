@@ -7,8 +7,21 @@ CREATE TABLE users (
 );
 
 CREATE TABLE series (
-    id NUMERIC PRIMARY KEY,
+    id INTEGER NOT NULL,
     title VARCHAR(100) NOT NULL,
     poster VARCHAR(150),
-    fk_user VARCHAR(50) NOT NULL REFERENCES users(id)
+    episode_length INTEGER NOT NULL,
+    fk_user VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
+    sid SERIAL UNIQUE,
+    PRIMARY KEY (id, fk_user)
+);
+
+CREATE TABLE seasons (
+    id SERIAL PRIMARY KEY,
+    number INTEGER NOT NUll,
+    episodes INTEGER NOT NULL,
+    image VARCHAR(150),
+    started_at DATE NOT NULL,
+    finished_at DATE NOT NULL,
+    fk_series INTEGER REFERENCES series (sid) ON DELETE CASCADE
 );
