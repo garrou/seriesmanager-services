@@ -45,11 +45,7 @@ func (s *seriesController) PostSeries(ctx *gin.Context) {
 		return
 	}
 	authHeader := ctx.GetHeader("Authorization")
-	token, errToken := s.jwtHelper.ValidateToken(authHeader)
-
-	if errToken != nil {
-		panic(errToken.Error())
-	}
+	token, _ := s.jwtHelper.ValidateToken(authHeader)
 	claims := token.Claims.(jwt.MapClaims)
 	seriesDto.User = fmt.Sprintf("%s", claims["id"])
 
@@ -66,11 +62,7 @@ func (s *seriesController) PostSeries(ctx *gin.Context) {
 // GetAll returns all series of the authenticated user
 func (s *seriesController) GetAll(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
-	token, errToken := s.jwtHelper.ValidateToken(authHeader)
-
-	if errToken != nil {
-		panic(errToken.Error())
-	}
+	token, _ := s.jwtHelper.ValidateToken(authHeader)
 	claims := token.Claims.(jwt.MapClaims)
 	userId := fmt.Sprintf("%s", claims["id"])
 	series := s.seriesService.GetAll(userId)
@@ -81,11 +73,7 @@ func (s *seriesController) GetAll(ctx *gin.Context) {
 // GetByTitle returns all series with title matching
 func (s *seriesController) GetByTitle(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
-	token, errToken := s.jwtHelper.ValidateToken(authHeader)
-
-	if errToken != nil {
-		panic(errToken.Error())
-	}
+	token, _ := s.jwtHelper.ValidateToken(authHeader)
 	claims := token.Claims.(jwt.MapClaims)
 	userId := fmt.Sprintf("%s", claims["id"])
 	series := s.seriesService.GetByTitle(userId, ctx.Param("title"))

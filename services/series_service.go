@@ -1,13 +1,14 @@
 package services
 
 import (
+	"github.com/google/uuid"
 	"seriesmanager-services/dto"
 	"seriesmanager-services/models"
 	"seriesmanager-services/repositories"
 )
 
 type SeriesService interface {
-	AddSeries(series dto.SeriesCreateDto) dto.SeriesPreviewDto
+	AddSeries(series dto.SeriesCreateDto) models.Series
 	GetAll(userId string) []dto.SeriesPreviewDto
 	GetByTitle(userId, title string) []dto.SeriesPreviewDto
 	IsDuplicateSeries(series dto.SeriesCreateDto) bool
@@ -23,16 +24,16 @@ func NewSeriesService(seriesRepository repositories.SeriesRepository) SeriesServ
 	}
 }
 
-func (s *seriesService) AddSeries(series dto.SeriesCreateDto) dto.SeriesPreviewDto {
+func (s *seriesService) AddSeries(series dto.SeriesCreateDto) models.Series {
 	toCreate := models.Series{
 		Id:            series.Id,
 		Title:         series.Title,
 		Poster:        series.Poster,
 		EpisodeLength: series.EpisodeLength,
 		User:          series.User,
+		Sid:           uuid.New().String(),
 	}
-	s.seriesRepository.Save(toCreate)
-	return dto.SeriesPreviewDto{Id: series.Id, Title: series.Title, Poster: series.Poster}
+	return s.seriesRepository.Save(toCreate)
 }
 
 func (s *seriesService) GetAll(userId string) []dto.SeriesPreviewDto {
@@ -45,6 +46,7 @@ func (s *seriesService) GetAll(userId string) []dto.SeriesPreviewDto {
 			Title:         s.Title,
 			Poster:        s.Poster,
 			EpisodeLength: s.EpisodeLength,
+			Sid:           s.Sid,
 		})
 	}
 	return series
@@ -60,6 +62,7 @@ func (s *seriesService) GetByTitle(userId, title string) []dto.SeriesPreviewDto 
 			Title:         s.Title,
 			Poster:        s.Poster,
 			EpisodeLength: s.EpisodeLength,
+			Sid:           s.Sid,
 		})
 	}
 	return series

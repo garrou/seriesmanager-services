@@ -6,7 +6,7 @@ import (
 )
 
 type SeasonRepository interface {
-	FindBySeriesId(sid int) []models.Season
+	FindBySid(sid string) []models.Season
 	Save(series models.Season) models.Season
 }
 
@@ -18,7 +18,7 @@ func NewSeasonRepository(db *gorm.DB) SeasonRepository {
 	return &seasonRepository{db: db}
 }
 
-func (s *seasonRepository) FindBySeriesId(sid int) []models.Season {
+func (s *seasonRepository) FindBySid(sid string) []models.Season {
 	var seasons []models.Season
 	res := s.db.Where("fk_series = ?", sid).Order("number").Find(&seasons)
 

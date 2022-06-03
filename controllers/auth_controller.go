@@ -73,8 +73,8 @@ func (a *authController) Login(ctx *gin.Context) {
 		token := a.jwtHelper.GenerateToken(user.Id)
 		response := helpers.NewResponse(true, "OK", token)
 		ctx.JSON(http.StatusOK, response)
-		return
+	} else {
+		response := helpers.NewErrorResponse("Informations invalides", nil)
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
 	}
-	response := helpers.NewErrorResponse("Informations invalides", nil)
-	ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
 }

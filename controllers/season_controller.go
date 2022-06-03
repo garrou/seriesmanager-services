@@ -6,13 +6,14 @@ import (
 	"seriesmanager-services/dto"
 	"seriesmanager-services/helpers"
 	"seriesmanager-services/middlewares"
+	"seriesmanager-services/models"
 	"seriesmanager-services/services"
 )
 
 type SeasonController interface {
 	Routes(e *gin.Engine)
 	PostSeason(ctx *gin.Context)
-	GetBySeriesId(ctx *gin.Context)
+	GetBySid(ctx *gin.Context)
 }
 
 type seasonController struct {
@@ -28,11 +29,11 @@ func (s *seasonController) Routes(e *gin.Engine) {
 	routes := e.Group("/api/seasons", middlewares.AuthorizeJwt(s.jwtHelper))
 	{
 		routes.POST("/", s.PostSeason)
-		routes.GET("/series/:id", s.GetBySeriesId)
+		routes.GET("/series/:sid", s.GetBySid)
 	}
 }
 
-// PostSeason adds a season
+// PostSeason user adds a season
 func (s *seasonController) PostSeason(ctx *gin.Context) {
 	var seasonDto dto.SeasonCreateDto
 	if errDto := ctx.ShouldBind(&seasonDto); errDto != nil {
@@ -40,26 +41,20 @@ func (s *seasonController) PostSeason(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
-	authHeader := ctx.GetHeader("Authorization")
-	_, errToken := s.jwtHelper.ValidateToken(authHeader)
+	res := s.seasonService.AddSeason(seasonDto)
 
-	if errToken != nil {
-		panic(errToken.Error())
+	if season, ok := res.(models.Season); ok {
+		response := helpers.NewResponse(true, "Saison ajoutée", season)
+		ctx.JSON(http.StatusCreated, response)
+	} else {
+		response := helpers.NewErrorResponse("Informations invalides", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 	}
-	season := s.seasonService.AddSeason(seasonDto)
-	response := helpers.NewResponse(true, "Saison ajoutée", season)
-	ctx.JSON(http.StatusCreated, response)
 }
 
-// GetBySeriesId allows to get series seasons by series sid
-func (s *seasonController) GetBySeriesId(ctx *gin.Context) {
-	authHeader := ctx.GetHeader("Authorization")
-	_, errToken := s.jwtHelper.ValidateToken(authHeader)
-
-	if errToken != nil {
-		panic(errToken.Error())
-	}
-	seasons := s.seasonService.GetBySeriesId(ctx.Param("id"))
+// GetBySid allows to get series seasons by series sid
+func (s *seasonController) GetBySid(ctx *gin.Context) {
+	seasons := s.seasonService.GetBySid(ctx.Param("sid"))
 	response := helpers.NewResponse(true, "", seasons)
 	ctx.JSON(http.StatusOK, response)
 }

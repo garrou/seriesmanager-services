@@ -13,4 +13,5 @@ type SeriesPreviewDto struct {
 	Title         string `json:"title"`
 	Poster        string `json:"poster"`
 	EpisodeLength int    `json:"length"`
+	Sid           string `json:"sid"`
 }

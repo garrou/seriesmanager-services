@@ -1,18 +1,16 @@
 package services
 
 import (
+	"github.com/google/uuid"
 	"seriesmanager-services/dto"
 	"seriesmanager-services/models"
 	"seriesmanager-services/repositories"
-	"strconv"
 	"time"
 )
 
-const LAYOUT = "2000-03-14"
-
 type SeasonService interface {
-	AddSeason(season dto.SeasonCreateDto) dto.SeasonCreateDto
-	GetBySeriesId(id string) []dto.SeasonDto
+	AddSeason(season dto.SeasonCreateDto) interface{}
+	GetBySid(sid string) []models.Season
 }
 
 type seasonService struct {
@@ -25,35 +23,24 @@ func NewSeasonService(seasonRepository repositories.SeasonRepository) SeasonServ
 	}
 }
 
-func (s *seasonService) AddSeason(season dto.SeasonCreateDto) dto.SeasonCreateDto {
-	start, _ := time.Parse(LAYOUT, season.StartedAt)
-	finish, _ := time.Parse(LAYOUT, season.FinishedAt)
-	toCreate := models.Season{
+func (s *seasonService) AddSeason(season dto.SeasonCreateDto) interface{} {
+	start, errStart := time.Parse(time.RFC3339, season.StartedAt)
+	finish, errFinish := time.Parse(time.RFC3339, season.FinishedAt)
+
+	if errStart != nil || errFinish != nil || start.After(finish) {
+		return false
+	}
+	return s.seasonRepository.Save(models.Season{
+		Id:         uuid.New().String(),
 		Number:     season.Number,
 		Episodes:   season.Episodes,
 		Image:      season.Image,
 		StartedAt:  start,
 		FinishedAt: finish,
 		Series:     season.Series,
-	}
-	s.seasonRepository.Save(toCreate)
-	return season
+	})
 }
 
-func (s *seasonService) GetBySeriesId(id string) []dto.SeasonDto {
-	var seasons []dto.SeasonDto
-	seriesId, _ := strconv.Atoi(id)
-	res := s.seasonRepository.FindBySeriesId(seriesId)
-
-	for _, s := range res {
-		seasons = append(seasons, dto.SeasonDto{
-			Id:         s.Id,
-			Number:     s.Number,
-			Episodes:   s.Episodes,
-			Image:      s.Image,
-			StartedAt:  s.StartedAt.Format(LAYOUT),
-			FinishedAt: s.FinishedAt.Format(LAYOUT),
-		})
-	}
-	return seasons
+func (s *seasonService) GetBySid(sid string) []models.Season {
+	return s.seasonRepository.FindBySid(sid)
 }

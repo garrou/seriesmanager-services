@@ -38,11 +38,7 @@ func (u *userController) Routes(e *gin.Engine) {
 // Get the authenticated user
 func (u *userController) Get(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
-	token, errToken := u.jwtHelper.ValidateToken(authHeader)
-
-	if errToken != nil {
-		panic(errToken.Error())
-	}
+	token, _ := u.jwtHelper.ValidateToken(authHeader)
 	claims := token.Claims.(jwt.MapClaims)
 	res := u.userService.Get(fmt.Sprintf("%s", claims["id"]))
 
@@ -64,11 +60,7 @@ func (u *userController) Update(ctx *gin.Context) {
 		return
 	}
 	authHeader := ctx.GetHeader("Authorization")
-	token, errToken := u.jwtHelper.ValidateToken(authHeader)
-
-	if errToken != nil {
-		panic(errToken.Error())
-	}
+	token, _ := u.jwtHelper.ValidateToken(authHeader)
 	claims := token.Claims.(jwt.MapClaims)
 	userDto.Id = fmt.Sprintf("%s", claims["id"])
 	res := u.userService.Update(userDto)

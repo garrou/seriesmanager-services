@@ -1,20 +1,10 @@
 package dto
 
-type SeasonDto struct {
-	Id         int    `json:"id"`
-	Number     int    `json:"number"`
-	Episodes   int    `json:"episodes"`
-	Image      string `json:"image"`
-	StartedAt  string `json:"startedAt"`
-	FinishedAt string `json:"finishedAt"`
-	Series     int    `json:"seriesId"`
-}
-
 type SeasonCreateDto struct {
-	Number     int    `json:"number"`
-	Episodes   int    `json:"episodes"`
+	Number     int    `json:"number" binding:"required"`
+	Episodes   int    `json:"episodes" binding:"required"`
 	Image      string `json:"image"`
-	StartedAt  string `json:"startedAt"`
-	FinishedAt string `json:"finishedAt"`
-	Series     int    `json:"seriesId"`
+	StartedAt  string `json:"startedAt" binding:"required"`
+	FinishedAt string `json:"finishedAt" binding:"required"`
+	Series     string `json:"sid" binding:"required"`
 }

@@ -59,5 +59,5 @@ type Series struct {
 	Poster        string
 	EpisodeLength int    `gorm:"column:episode_length"`
 	User          string `gorm:"column:fk_user"`
-	Sid           int    `gorm:"autoIncrement"`
+	Sid           string
 }

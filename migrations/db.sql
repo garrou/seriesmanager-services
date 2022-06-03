@@ -12,7 +12,7 @@ CREATE TABLE series (
     poster VARCHAR(150),
     episode_length INTEGER NOT NULL,
     fk_user VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
-    sid SERIAL UNIQUE,
+    sid VARCHAR(50) UNIQUE NOT NULL,
     PRIMARY KEY (id, fk_user)
 );
 
@@ -23,5 +23,5 @@ CREATE TABLE seasons (
     image VARCHAR(150),
     started_at DATE NOT NULL,
     finished_at DATE NOT NULL,
-    fk_series INTEGER REFERENCES series (sid) ON DELETE CASCADE
+    fk_series VARCHAR(50) REFERENCES series (sid) ON DELETE CASCADE
 );
