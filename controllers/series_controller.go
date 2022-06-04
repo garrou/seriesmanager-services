@@ -16,6 +16,7 @@ type SeriesController interface {
 	PostSeries(ctx *gin.Context)
 	GetAll(ctx *gin.Context)
 	GetByTitle(ctx *gin.Context)
+	GetInfosBySeries(ctx *gin.Context)
 }
 
 type seriesController struct {
@@ -33,6 +34,7 @@ func (s *seriesController) Routes(e *gin.Engine) {
 		routes.POST("/", s.PostSeries)
 		routes.GET("/", s.GetAll)
 		routes.GET("/titles/:title", s.GetByTitle)
+		routes.GET("/:sid/infos", s.GetInfosBySeries)
 	}
 }
 
@@ -78,5 +80,12 @@ func (s *seriesController) GetByTitle(ctx *gin.Context) {
 	userId := fmt.Sprintf("%s", claims["id"])
 	series := s.seriesService.GetByTitle(userId, ctx.Param("title"))
 	response := helpers.NewResponse(true, "", series)
+	ctx.JSON(http.StatusOK, response)
+}
+
+// GetInfosBySeries returns user infos series by sid
+func (s *seriesController) GetInfosBySeries(ctx *gin.Context) {
+	infos := s.seriesService.GetInfosBySeries(ctx.Param("sid"))
+	response := helpers.NewResponse(true, "", infos)
 	ctx.JSON(http.StatusOK, response)
 }

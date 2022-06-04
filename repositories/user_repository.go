@@ -30,7 +30,7 @@ func (u *userRepository) Save(user models.User) models.User {
 
 func (u *userRepository) FindByEmail(email string) interface{} {
 	var user models.User
-	res := u.db.Where("email = ?", email).Take(&user)
+	res := u.db.Find(&user, "email = ?", email)
 
 	if res.Error == nil {
 		return user
@@ -40,7 +40,7 @@ func (u *userRepository) FindByEmail(email string) interface{} {
 
 func (u *userRepository) FindById(id string) interface{} {
 	var user models.User
-	res := u.db.Where("id = ?", id).Take(&user)
+	res := u.db.Find(&user, "id = ?", id)
 
 	if res.Error == nil {
 		return user
@@ -50,5 +50,5 @@ func (u *userRepository) FindById(id string) interface{} {
 
 func (u *userRepository) Exists(email string) *gorm.DB {
 	var user models.User
-	return u.db.Where("email = ?", email).Take(&user)
+	return u.db.Find(&user, "email = ?", email)
 }

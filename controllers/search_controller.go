@@ -14,6 +14,7 @@ type SearchController interface {
 	GetSeriesByName(ctx *gin.Context)
 	GetSeriesById(ctx *gin.Context)
 	GetSeasonsBySeriesId(ctx *gin.Context)
+	GetEpisodesBySeriesIdBySeason(ctx *gin.Context)
 }
 
 type searchController struct {
@@ -32,6 +33,7 @@ func (s *searchController) Routes(e *gin.Engine) {
 		routes.GET("/names/:name", s.GetSeriesByName)
 		routes.GET("/series/:id", s.GetSeriesById)
 		routes.GET("/series/:id/seasons", s.GetSeasonsBySeriesId)
+		routes.GET("/series/:id/seasons/:number/episodes", s.GetEpisodesBySeriesIdBySeason)
 	}
 }
 
@@ -49,16 +51,23 @@ func (s *searchController) GetSeriesByName(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-// GetSeriesById calls api to get series details by series id api
+// GetSeriesById calls api to get series details by series id
 func (s *searchController) GetSeriesById(ctx *gin.Context) {
 	series := s.searchService.SearchSeriesById(ctx.Param("id"))
 	response := helpers.NewResponse(true, "", series)
 	ctx.JSON(http.StatusOK, response)
 }
 
-// GetSeasonsBySeriesId calls api to get seasons by series id api
+// GetSeasonsBySeriesId calls api to get seasons by series id
 func (s *searchController) GetSeasonsBySeriesId(ctx *gin.Context) {
 	seasons := s.searchService.SearchSeasonsBySeriesId(ctx.Param("id"))
 	response := helpers.NewResponse(true, "", seasons)
+	ctx.JSON(http.StatusOK, response)
+}
+
+// GetEpisodesBySeriesIdBySeason calls api to get episodes by series id and season number
+func (s *searchController) GetEpisodesBySeriesIdBySeason(ctx *gin.Context) {
+	episodes := s.searchService.SearchEpisodesBySeriesIdBySeason(ctx.Param("id"), ctx.Param("number"))
+	response := helpers.NewResponse(true, "", episodes)
 	ctx.JSON(http.StatusOK, response)
 }

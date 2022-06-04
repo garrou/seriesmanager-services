@@ -5,6 +5,7 @@ import (
 	"seriesmanager-services/dto"
 	"seriesmanager-services/models"
 	"seriesmanager-services/repositories"
+	"time"
 )
 
 type SeriesService interface {
@@ -12,6 +13,7 @@ type SeriesService interface {
 	GetAll(userId string) []dto.SeriesPreviewDto
 	GetByTitle(userId, title string) []dto.SeriesPreviewDto
 	IsDuplicateSeries(series dto.SeriesCreateDto) bool
+	GetInfosBySeries(sid string) models.SeriesInfo
 }
 
 type seriesService struct {
@@ -30,6 +32,7 @@ func (s *seriesService) AddSeries(series dto.SeriesCreateDto) models.Series {
 		Title:         series.Title,
 		Poster:        series.Poster,
 		EpisodeLength: series.EpisodeLength,
+		AddedAt:       time.Now(),
 		User:          series.User,
 		Sid:           uuid.New().String(),
 	}
@@ -71,4 +74,8 @@ func (s *seriesService) GetByTitle(userId, title string) []dto.SeriesPreviewDto 
 func (s *seriesService) IsDuplicateSeries(series dto.SeriesCreateDto) bool {
 	res := s.seriesRepository.Exists(series.Id, series.User)
 	return res.Error == nil
+}
+
+func (s *seriesService) GetInfosBySeries(sid string) models.SeriesInfo {
+	return s.seriesRepository.FindInfosBySeries(sid)
 }

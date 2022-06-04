@@ -2,7 +2,7 @@ package models
 
 import "time"
 
-// Season represents a database season
+// Season represents a season in database
 type Season struct {
 	Id         string    `json:"id"`
 	Number     int       `json:"number"`
@@ -13,12 +13,9 @@ type Season struct {
 	FinishedAt time.Time `json:"finishedAt" gorm:"column:finished_at"`
 }
 
-// SearchSeasons represents an api season
-type SearchSeasons struct {
-	Seasons []struct {
-		Id       int    `json:"id"`
-		Number   int    `json:"number"`
-		Episodes int    `json:"episodes"`
-		Image    string `json:"image"`
-	} `json:"seasons"`
+// SeasonInfos represents user season infos
+type SeasonInfos struct {
+	StartedAt  time.Time `json:"startedAt"`
+	FinishedAt time.Time `json:"finishedAt"`
+	Duration   int       `json:"duration"`
 }

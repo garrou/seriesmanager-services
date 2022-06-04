@@ -11,6 +11,7 @@ CREATE TABLE series (
     title VARCHAR(100) NOT NULL,
     poster VARCHAR(150),
     episode_length INTEGER NOT NULL,
+    added_at DATE NOT NULL,
     fk_user VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
     sid VARCHAR(50) UNIQUE NOT NULL,
     PRIMARY KEY (id, fk_user)

@@ -10,7 +10,8 @@ import (
 
 type SeasonService interface {
 	AddSeason(season dto.SeasonCreateDto) interface{}
-	GetBySid(sid string) []models.Season
+	GetDistinctBySid(sid string) []models.Season
+	GetInfosBySeasonBySeries(sid, number string) []models.SeasonInfos
 }
 
 type seasonService struct {
@@ -41,6 +42,10 @@ func (s *seasonService) AddSeason(season dto.SeasonCreateDto) interface{} {
 	})
 }
 
-func (s *seasonService) GetBySid(sid string) []models.Season {
-	return s.seasonRepository.FindBySid(sid)
+func (s *seasonService) GetDistinctBySid(sid string) []models.Season {
+	return s.seasonRepository.FindDistinctBySid(sid)
+}
+
+func (s *seasonService) GetInfosBySeasonBySeries(sid, number string) []models.SeasonInfos {
+	return s.seasonRepository.FindInfosBySeriesBySeason(sid, number)
 }
