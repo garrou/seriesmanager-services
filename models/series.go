@@ -1,16 +1,19 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 // Series represents a series in database
 type Series struct {
-	Id            int
-	Title         string
-	Poster        string
-	EpisodeLength int       `gorm:"column:episode_length"`
-	AddedAt       time.Time `gorm:"column:added_at"`
-	User          string    `gorm:"column:fk_user"`
-	Sid           string
+	ID            int    `gorm:"autoIncrement;"`
+	Sid           int    `gorm:"not null;"`
+	Title         string `gorm:"type:varchar(150);not null;"`
+	Poster        string `gorm:"type:varchar(150);"`
+	EpisodeLength int    `gorm:"not null;"`
+	AddedAt       time.Time
+	Seasons       []Season
+	UserID        string
 }
 
 // SeriesInfo represents user series info

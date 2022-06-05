@@ -3,6 +3,7 @@ package database
 import (
 	"fmt"
 	"os"
+	"seriesmanager-services/models"
 
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
@@ -27,6 +28,10 @@ func Open() *gorm.DB {
 	if errDb != nil {
 		panic(errDb.Error())
 	}
+
+	if errMigrate := db.AutoMigrate(&models.User{}, &models.Series{}, &models.Season{}); errMigrate != nil {
+		panic(errMigrate)
+	}
 	return db
 }
 
@@ -40,3 +45,5 @@ func Close(db *gorm.DB) {
 		panic(errClose.Error())
 	}
 }
+
+// TODO: delete with userId each time

@@ -14,7 +14,7 @@ type SeasonController interface {
 	Routes(e *gin.Engine)
 	PostSeason(ctx *gin.Context)
 	GetDistinctBySid(ctx *gin.Context)
-	GetInfosBySeasonBySeries(ctx *gin.Context)
+	GetInfosBySeasonBySeriesId(ctx *gin.Context)
 }
 
 type seasonController struct {
@@ -30,8 +30,8 @@ func (s *seasonController) Routes(e *gin.Engine) {
 	routes := e.Group("/api/seasons", middlewares.AuthorizeJwt(s.jwtHelper))
 	{
 		routes.POST("/", s.PostSeason)
-		routes.GET("/series/:sid", s.GetDistinctBySid)
-		routes.GET("/:number/series/:sid/infos", s.GetInfosBySeasonBySeries)
+		routes.GET("/series/:id", s.GetDistinctBySid)
+		routes.GET("/:number/series/:id/infos", s.GetInfosBySeasonBySeriesId)
 	}
 }
 
@@ -56,14 +56,14 @@ func (s *seasonController) PostSeason(ctx *gin.Context) {
 
 // GetDistinctBySid gets series seasons by series sid
 func (s *seasonController) GetDistinctBySid(ctx *gin.Context) {
-	seasons := s.seasonService.GetDistinctBySid(ctx.Param("sid"))
+	seasons := s.seasonService.GetDistinctBySeriesId(ctx.Param("id"))
 	response := helpers.NewResponse("", seasons)
 	ctx.JSON(http.StatusOK, response)
 }
 
-// GetInfosBySeasonBySeries get season user infos
-func (s *seasonController) GetInfosBySeasonBySeries(ctx *gin.Context) {
-	infos := s.seasonService.GetInfosBySeasonBySeries(ctx.Param("sid"), ctx.Param("number"))
+// GetInfosBySeasonBySeriesId get season user infos
+func (s *seasonController) GetInfosBySeasonBySeriesId(ctx *gin.Context) {
+	infos := s.seasonService.GetInfosBySeasonBySeriesId(ctx.Param("id"), ctx.Param("number"))
 	response := helpers.NewResponse("", infos)
 	ctx.JSON(http.StatusOK, response)
 }

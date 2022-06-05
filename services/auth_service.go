@@ -1,12 +1,12 @@
 package services
 
 import (
+	"github.com/google/uuid"
 	"seriesmanager-services/dto"
 	"seriesmanager-services/helpers"
 	"seriesmanager-services/models"
 	"seriesmanager-services/repositories"
-
-	"github.com/google/uuid"
+	"time"
 )
 
 type AuthService interface {
@@ -27,9 +27,11 @@ func NewAuthService(userRepository repositories.UserRepository) AuthService {
 
 func (a *authService) Register(user dto.UserCreateDto) models.User {
 	toCreate := models.User{
-		Id:       uuid.New().String(),
+		ID:       uuid.New().String(),
+		Username: user.Username,
 		Email:    user.Email,
 		Password: helpers.HashPassword(user.Password),
+		JoinedAt: time.Now(),
 	}
 	return a.userRepository.Save(toCreate)
 }

@@ -9,6 +9,7 @@ import (
 	"seriesmanager-services/helpers"
 	"seriesmanager-services/middlewares"
 	"seriesmanager-services/services"
+	"strconv"
 )
 
 type SeriesController interface {
@@ -16,7 +17,7 @@ type SeriesController interface {
 	PostSeries(ctx *gin.Context)
 	GetAll(ctx *gin.Context)
 	GetByTitle(ctx *gin.Context)
-	GetInfosBySid(ctx *gin.Context)
+	GetInfosById(ctx *gin.Context)
 	Delete(ctx *gin.Context)
 }
 
@@ -35,8 +36,8 @@ func (s *seriesController) Routes(e *gin.Engine) {
 		routes.POST("/", s.PostSeries)
 		routes.GET("/", s.GetAll)
 		routes.GET("/titles/:title", s.GetByTitle)
-		routes.GET("/:sid/infos", s.GetInfosBySid)
-		routes.DELETE("/:sid", s.Delete)
+		routes.GET("/:id/infos", s.GetInfosById)
+		routes.DELETE("/:id", s.Delete)
 	}
 }
 
@@ -51,7 +52,7 @@ func (s *seriesController) PostSeries(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	token, _ := s.jwtHelper.ValidateToken(authHeader)
 	claims := token.Claims.(jwt.MapClaims)
-	seriesDto.User = fmt.Sprintf("%s", claims["id"])
+	seriesDto.UserId = fmt.Sprintf("%s", claims["id"])
 
 	if s.seriesService.IsDuplicateSeries(seriesDto) {
 		response := helpers.NewResponse("Vous avez déjà ajouté cette série", nil)
@@ -65,10 +66,7 @@ func (s *seriesController) PostSeries(ctx *gin.Context) {
 
 // GetAll returns all series of the authenticated user
 func (s *seriesController) GetAll(ctx *gin.Context) {
-	authHeader := ctx.GetHeader("Authorization")
-	token, _ := s.jwtHelper.ValidateToken(authHeader)
-	claims := token.Claims.(jwt.MapClaims)
-	userId := fmt.Sprintf("%s", claims["id"])
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	series := s.seriesService.GetAll(userId)
 	response := helpers.NewResponse("", series)
 	ctx.JSON(http.StatusOK, response)
@@ -76,29 +74,35 @@ func (s *seriesController) GetAll(ctx *gin.Context) {
 
 // GetByTitle returns all series with title matching
 func (s *seriesController) GetByTitle(ctx *gin.Context) {
-	authHeader := ctx.GetHeader("Authorization")
-	token, _ := s.jwtHelper.ValidateToken(authHeader)
-	claims := token.Claims.(jwt.MapClaims)
-	userId := fmt.Sprintf("%s", claims["id"])
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	series := s.seriesService.GetByTitle(userId, ctx.Param("title"))
 	response := helpers.NewResponse("", series)
 	ctx.JSON(http.StatusOK, response)
 }
 
-// GetInfosBySid returns user infos series by sid
-func (s *seriesController) GetInfosBySid(ctx *gin.Context) {
-	infos := s.seriesService.GetInfosBySid(ctx.Param("sid"))
-	response := helpers.NewResponse("", infos)
-	ctx.JSON(http.StatusOK, response)
+// GetInfosById returns series by id
+func (s *seriesController) GetInfosById(ctx *gin.Context) {
+	seriesId, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+	} else {
+		infos := s.seriesService.GetInfosBySeriesId(seriesId)
+		response := helpers.NewResponse("", infos)
+		ctx.JSON(http.StatusOK, response)
+	}
 }
 
 // Delete deletes series with userId and sid
 func (s *seriesController) Delete(ctx *gin.Context) {
-	authHeader := ctx.GetHeader("Authorization")
-	token, _ := s.jwtHelper.ValidateToken(authHeader)
-	claims := token.Claims.(jwt.MapClaims)
-	userId := fmt.Sprintf("%s", claims["id"])
-	isDeleted := s.seriesService.DeleteByUserBySid(userId, ctx.Param("sid"))
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	seriesId, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		ctx.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+	isDeleted := s.seriesService.DeleteByUserIdBySeriesId(userId, seriesId)
 
 	if isDeleted {
 		response := helpers.NewResponse("", nil)

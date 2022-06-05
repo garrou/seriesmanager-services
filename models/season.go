@@ -1,16 +1,18 @@
 package models
 
-import "time"
+import (
+	"time"
+)
 
 // Season represents a season in database
 type Season struct {
-	Id         string    `json:"id"`
-	Number     int       `json:"number"`
-	Episodes   int       `json:"episodes"`
-	Image      string    `json:"image"`
-	Series     string    `json:"sid" gorm:"column:fk_series"`
-	StartedAt  time.Time `json:"startedAt" gorm:"column:started_at"`
-	FinishedAt time.Time `json:"finishedAt" gorm:"column:finished_at"`
+	ID         int       `json:"id" gorm:"autoIncrement;"`
+	Number     int       `json:"number" gorm:"not null;"`
+	Episodes   int       `json:"episodes" gorm:"not null;"`
+	Image      string    `json:"image" gorm:"varchar(150);"`
+	StartedAt  time.Time `json:"startedAt"`
+	FinishedAt time.Time `json:"finishedAt"`
+	SeriesID   int       `json:"seriesId"`
 }
 
 // SeasonInfos represents user season infos

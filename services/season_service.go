@@ -1,7 +1,6 @@
 package services
 
 import (
-	"github.com/google/uuid"
 	"seriesmanager-services/dto"
 	"seriesmanager-services/models"
 	"seriesmanager-services/repositories"
@@ -10,8 +9,8 @@ import (
 
 type SeasonService interface {
 	AddSeason(season dto.SeasonCreateDto) interface{}
-	GetDistinctBySid(sid string) []models.Season
-	GetInfosBySeasonBySeries(sid, number string) []models.SeasonInfos
+	GetDistinctBySeriesId(seriesId string) []models.Season
+	GetInfosBySeasonBySeriesId(seriesId, number string) []models.SeasonInfos
 }
 
 type seasonService struct {
@@ -32,20 +31,19 @@ func (s *seasonService) AddSeason(season dto.SeasonCreateDto) interface{} {
 		return false
 	}
 	return s.seasonRepository.Save(models.Season{
-		Id:         uuid.New().String(),
 		Number:     season.Number,
 		Episodes:   season.Episodes,
 		Image:      season.Image,
 		StartedAt:  start,
 		FinishedAt: finish,
-		Series:     season.Series,
+		SeriesID:   season.SeriesId,
 	})
 }
 
-func (s *seasonService) GetDistinctBySid(sid string) []models.Season {
-	return s.seasonRepository.FindDistinctBySid(sid)
+func (s *seasonService) GetDistinctBySeriesId(seriesId string) []models.Season {
+	return s.seasonRepository.FindDistinctBySeriesId(seriesId)
 }
 
-func (s *seasonService) GetInfosBySeasonBySeries(sid, number string) []models.SeasonInfos {
-	return s.seasonRepository.FindInfosBySeriesBySeason(sid, number)
+func (s *seasonService) GetInfosBySeasonBySeriesId(seriesId, number string) []models.SeasonInfos {
+	return s.seasonRepository.FindInfosBySeriesIdBySeason(seriesId, number)
 }

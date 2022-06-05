@@ -2,11 +2,11 @@ package dto
 
 // SeriesCreateDto represents a series to create
 type SeriesCreateDto struct {
-	Id            int    `json:"id" binding:"required"`
-	Title         string `json:"title" binding:"required"`
-	Poster        string `json:"poster"`
+	Sid           int    `json:"id" binding:"required"`
+	Title         string `json:"title" binding:"required" validate:"max:150"`
+	Poster        string `json:"poster" validate:"max:150"`
 	EpisodeLength int    `json:"length" binding:"required"`
-	User          string
+	UserId        string
 }
 
 // SeriesPreviewDto represents the preview of the series
@@ -15,7 +15,7 @@ type SeriesPreviewDto struct {
 	Title         string `json:"title"`
 	Poster        string `json:"poster"`
 	EpisodeLength int    `json:"length"`
-	Sid           string `json:"sid"`
+	Sid           int    `json:"sid"`
 }
 
 // PreviewSeries represents the result when get by id

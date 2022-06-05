@@ -11,6 +11,7 @@ import (
 type JwtHelper interface {
 	GenerateToken(userId string) string
 	ValidateToken(token string) (*jwt.Token, error)
+	ExtractUserId(authorization string) string
 }
 
 type jwtClaims struct {
@@ -48,6 +49,12 @@ func (j *jwtHelper) ValidateToken(token string) (*jwt.Token, error) {
 		}
 		return []byte(j.secretKey), nil
 	})
+}
+
+func (j *jwtHelper) ExtractUserId(authorization string) string {
+	token, _ := j.ValidateToken(authorization)
+	claims := token.Claims.(jwt.MapClaims)
+	return fmt.Sprintf("%s", claims["id"])
 }
 
 func NewJwtHelper() JwtHelper {

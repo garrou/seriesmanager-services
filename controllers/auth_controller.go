@@ -44,8 +44,10 @@ func (a *authController) Register(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
-	if userDto.Password != userDto.Confirm {
-		response := helpers.NewResponse("Le mot de passe et la confirmation sont différents", nil)
+	userDto.TrimSpace()
+
+	if !userDto.IsValid() {
+		response := helpers.NewResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
@@ -70,7 +72,7 @@ func (a *authController) Login(ctx *gin.Context) {
 	res := a.authService.Login(userDto.Email, userDto.Password)
 
 	if user, ok := res.(models.User); ok {
-		token := a.jwtHelper.GenerateToken(user.Id)
+		token := a.jwtHelper.GenerateToken(user.ID)
 		response := helpers.NewResponse("", token)
 		ctx.JSON(http.StatusOK, response)
 	} else {

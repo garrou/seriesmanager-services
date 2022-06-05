@@ -50,5 +50,5 @@ func (u *userRepository) FindById(id string) interface{} {
 
 func (u *userRepository) Exists(email string) *gorm.DB {
 	var user models.User
-	return u.db.Find(&user, "email = ?", email)
+	return u.db.Take(&user, "email = ?", email)
 }

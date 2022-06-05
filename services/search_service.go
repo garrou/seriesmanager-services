@@ -11,8 +11,8 @@ import (
 type SearchService interface {
 	Discover() dto.SearchSeries
 	SearchSeriesByName(name string) dto.SearchSeries
-	SearchSeasonsBySeriesId(seriesId string) dto.SearchSeasons
-	SearchEpisodesBySeriesIdBySeason(seriesId string, seasonNumber string) dto.SearchEpisodes
+	SearchSeasonsBySid(seriesId string) dto.SearchSeasons
+	SearchEpisodesBySidBySeason(seriesId string, seasonNumber string) dto.SearchEpisodes
 }
 
 type searchService struct {
@@ -44,9 +44,9 @@ func (s *searchService) SearchSeriesByName(name string) dto.SearchSeries {
 	return series
 }
 
-func (s *searchService) SearchSeasonsBySeriesId(seriesId string) dto.SearchSeasons {
+func (s *searchService) SearchSeasonsBySid(sid string) dto.SearchSeasons {
 	apiKey := os.Getenv("API_KEY")
-	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/seasons?id=%s&key=%s", seriesId, apiKey))
+	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/seasons?id=%s&key=%s", sid, apiKey))
 	var seasons dto.SearchSeasons
 
 	if err := json.Unmarshal(body, &seasons); err != nil {
@@ -55,9 +55,9 @@ func (s *searchService) SearchSeasonsBySeriesId(seriesId string) dto.SearchSeaso
 	return seasons
 }
 
-func (s *searchService) SearchEpisodesBySeriesIdBySeason(seriesId string, seasonNumber string) dto.SearchEpisodes {
+func (s *searchService) SearchEpisodesBySidBySeason(sid, seasonNumber string) dto.SearchEpisodes {
 	apiKey := os.Getenv("API_KEY")
-	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/episodes?id=%s&season=%s&key=%s", seriesId, seasonNumber, apiKey))
+	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/episodes?id=%s&season=%s&key=%s", sid, seasonNumber, apiKey))
 	var episodes dto.SearchEpisodes
 
 	if err := json.Unmarshal(body, &episodes); err != nil {

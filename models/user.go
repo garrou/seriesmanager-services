@@ -1,11 +1,18 @@
 package models
 
+import (
+	"time"
+)
+
 // User represents a user in database
 type User struct {
-	Id       string `json:"id"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	ID       string `gorm:"unique;type:varchar(50);not null;"`
+	Username string `gorm:"type:varchar(50);not null;"`
+	Email    string `gorm:"unique;type:varchar(255);not null;"`
+	Password string `gorm:"not null;"`
+	JoinedAt time.Time
+	Banner   string
+	Series   []Series
 }
 
-// TODO: add username
 // TODO: add avatar

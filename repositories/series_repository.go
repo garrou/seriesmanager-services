@@ -10,8 +10,8 @@ type SeriesRepository interface {
 	FindByUserId(userId string) []models.Series
 	FindByUserIdAndTitle(userId, title string) []models.Series
 	Exists(seriesId int, userId string) *gorm.DB
-	FindInfosBySid(sid string) models.SeriesInfo
-	DeleteByUserBySid(userId, sid string) bool
+	FindInfosBySeriesId(seriesId int) models.SeriesInfo
+	DeleteByUserBySeriesId(userId string, seriesId int) bool
 }
 
 type seriesRepository struct {
@@ -31,7 +31,7 @@ func (s *seriesRepository) FindByUserId(userId string) []models.Series {
 	var series []models.Series
 	res := s.db.
 		Order("added_at DESC").
-		Find(&series, "fk_user = ?", userId)
+		Find(&series, "user_id = ?", userId)
 
 	if res.Error == nil {
 		return series
@@ -41,7 +41,7 @@ func (s *seriesRepository) FindByUserId(userId string) []models.Series {
 
 func (s *seriesRepository) FindByUserIdAndTitle(userId, title string) []models.Series {
 	var series []models.Series
-	res := s.db.Find(&series, "fk_user = ? AND UPPER(title) LIKE UPPER(?)", userId, "%"+title+"%")
+	res := s.db.Find(&series, "user_id = ? AND UPPER(title) LIKE UPPER(?)", userId, "%"+title+"%")
 
 	if res.Error == nil {
 		return series
@@ -51,10 +51,10 @@ func (s *seriesRepository) FindByUserIdAndTitle(userId, title string) []models.S
 
 func (s *seriesRepository) Exists(seriesId int, userId string) *gorm.DB {
 	var series models.Series
-	return s.db.Take(&series, "id = ? AND fk_user = ?", seriesId, userId)
+	return s.db.Take(&series, "id = ? AND user_id = ?", seriesId, userId)
 }
 
-func (s *seriesRepository) FindInfosBySid(sid string) models.SeriesInfo {
+func (s *seriesRepository) FindInfosBySeriesId(seriesId int) models.SeriesInfo {
 	var infos models.SeriesInfo
 	s.db.
 		Model(&models.Series{}).
@@ -63,14 +63,16 @@ COUNT(*) AS seasons,
 SUM(episodes) AS episodes, 
 MIN(started_at) AS started_at, 
 MAX(finished_at) AS finished_at`).
-		Joins("JOIN seasons ON sid = fk_series").
-		Where("sid = ?", sid).
+		Joins("JOIN seasons ON series.id = seasons.series_id").
+		Where("series.id = ?", seriesId).
 		Group("episode_length").
 		Scan(&infos)
 	return infos
 }
 
-func (s *seriesRepository) DeleteByUserBySid(userId, sid string) bool {
-	res := s.db.Delete(&models.Series{}, "fk_user = ? AND sid = ?", userId, sid)
+func (s *seriesRepository) DeleteByUserBySeriesId(userId string, seriesId int) bool {
+	res := s.db.Select("Seasons").
+		Where("user_id = ? AND id = ?", userId, seriesId).
+		Delete(&models.Series{ID: seriesId})
 	return res.Error == nil
 }

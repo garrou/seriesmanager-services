@@ -1,5 +1,10 @@
 package dto
 
+import (
+	"strings"
+	"time"
+)
+
 // UserDto represents a user during login
 type UserDto struct {
 	Email    string `json:"email" binding:"required" validate:"email,max:255"`
@@ -8,9 +13,29 @@ type UserDto struct {
 
 // UserCreateDto represents a user during register
 type UserCreateDto struct {
-	Email    string `json:"email" binding:"required" validate:"email,max:255"`
+	Email    string `json:"email" binding:"required" validate:"email,min:8,max:255"`
+	Username string `json:"username" binding:"required" validate:"min:3,max:50"`
 	Password string `json:"password" binding:"required" validate:"min:8,max:50"`
 	Confirm  string `json:"confirm" binding:"required" validate:":min:8,max:50"`
+}
+
+func (u *UserCreateDto) TrimSpace() {
+	u.Email = strings.TrimSpace(u.Email)
+	u.Username = strings.TrimSpace(u.Username)
+	u.Password = strings.TrimSpace(u.Password)
+	u.Confirm = strings.TrimSpace(u.Confirm)
+}
+
+func (u *UserCreateDto) IsValid() bool {
+	return len(u.Password) >= 8 && u.Password == u.Confirm && len(u.Username) >= 3
+}
+
+// UserProfileDto represents a user during get user profile
+type UserProfileDto struct {
+	Username string    `json:"username"`
+	Email    string    `json:"email"`
+	JoinedAt time.Time `json:"joinedAt"`
+	Banner   string    `json:"banner"`
 }
 
 type UserUpdateDto struct {
