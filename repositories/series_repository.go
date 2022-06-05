@@ -10,7 +10,8 @@ type SeriesRepository interface {
 	FindByUserId(userId string) []models.Series
 	FindByUserIdAndTitle(userId, title string) []models.Series
 	Exists(seriesId int, userId string) *gorm.DB
-	FindInfosBySeries(sid string) models.SeriesInfo
+	FindInfosBySid(sid string) models.SeriesInfo
+	DeleteByUserBySid(userId, sid string) bool
 }
 
 type seriesRepository struct {
@@ -53,7 +54,7 @@ func (s *seriesRepository) Exists(seriesId int, userId string) *gorm.DB {
 	return s.db.Take(&series, "id = ? AND fk_user = ?", seriesId, userId)
 }
 
-func (s *seriesRepository) FindInfosBySeries(sid string) models.SeriesInfo {
+func (s *seriesRepository) FindInfosBySid(sid string) models.SeriesInfo {
 	var infos models.SeriesInfo
 	s.db.
 		Model(&models.Series{}).
@@ -67,4 +68,9 @@ MAX(finished_at) AS finished_at`).
 		Group("episode_length").
 		Scan(&infos)
 	return infos
+}
+
+func (s *seriesRepository) DeleteByUserBySid(userId, sid string) bool {
+	res := s.db.Delete(&models.Series{}, "fk_user = ? AND sid = ?", userId, sid)
+	return res.Error == nil
 }

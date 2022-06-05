@@ -11,7 +11,6 @@ import (
 type SearchService interface {
 	Discover() dto.SearchSeries
 	SearchSeriesByName(name string) dto.SearchSeries
-	SearchSeriesById(seriesId string) dto.DetailsSeries
 	SearchSeasonsBySeriesId(seriesId string) dto.SearchSeasons
 	SearchEpisodesBySeriesIdBySeason(seriesId string, seasonNumber string) dto.SearchEpisodes
 }
@@ -38,17 +37,6 @@ func (s *searchService) SearchSeriesByName(name string) dto.SearchSeries {
 	apiKey := os.Getenv("API_KEY")
 	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/search?title=%s&key=%s", name, apiKey))
 	var series dto.SearchSeries
-
-	if err := json.Unmarshal(body, &series); err != nil {
-		panic(err.Error())
-	}
-	return series
-}
-
-func (s *searchService) SearchSeriesById(seriesId string) dto.DetailsSeries {
-	apiKey := os.Getenv("API_KEY")
-	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/display?id=%s&key=%s", seriesId, apiKey))
-	var series dto.DetailsSeries
 
 	if err := json.Unmarshal(body, &series); err != nil {
 		panic(err.Error())

@@ -39,17 +39,17 @@ func (s *seasonController) Routes(e *gin.Engine) {
 func (s *seasonController) PostSeason(ctx *gin.Context) {
 	var seasonDto dto.SeasonCreateDto
 	if errDto := ctx.ShouldBind(&seasonDto); errDto != nil {
-		response := helpers.NewErrorResponse("Informations invalides", nil)
+		response := helpers.NewResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
 	res := s.seasonService.AddSeason(seasonDto)
 
 	if season, ok := res.(models.Season); ok {
-		response := helpers.NewResponse(true, "Saison ajoutée", season)
+		response := helpers.NewResponse("Saison ajoutée", season)
 		ctx.JSON(http.StatusCreated, response)
 	} else {
-		response := helpers.NewErrorResponse("Informations invalides", nil)
+		response := helpers.NewResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 	}
 }
@@ -57,13 +57,13 @@ func (s *seasonController) PostSeason(ctx *gin.Context) {
 // GetDistinctBySid gets series seasons by series sid
 func (s *seasonController) GetDistinctBySid(ctx *gin.Context) {
 	seasons := s.seasonService.GetDistinctBySid(ctx.Param("sid"))
-	response := helpers.NewResponse(true, "", seasons)
+	response := helpers.NewResponse("", seasons)
 	ctx.JSON(http.StatusOK, response)
 }
 
 // GetInfosBySeasonBySeries get season user infos
 func (s *seasonController) GetInfosBySeasonBySeries(ctx *gin.Context) {
 	infos := s.seasonService.GetInfosBySeasonBySeries(ctx.Param("sid"), ctx.Param("number"))
-	response := helpers.NewResponse(true, "", infos)
+	response := helpers.NewResponse("", infos)
 	ctx.JSON(http.StatusOK, response)
 }

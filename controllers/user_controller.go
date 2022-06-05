@@ -35,7 +35,7 @@ func (u *userController) Routes(e *gin.Engine) {
 	}
 }
 
-// Get the authenticated user
+// Get gets the authenticated user
 func (u *userController) Get(ctx *gin.Context) {
 	authHeader := ctx.GetHeader("Authorization")
 	token, _ := u.jwtHelper.ValidateToken(authHeader)
@@ -43,11 +43,11 @@ func (u *userController) Get(ctx *gin.Context) {
 	res := u.userService.Get(fmt.Sprintf("%s", claims["id"]))
 
 	if _, ok := res.(models.User); ok {
-		response := helpers.NewResponse(true, "Authentifié", nil)
+		response := helpers.NewResponse("Authentifié", nil)
 		ctx.JSON(http.StatusOK, response)
 		return
 	}
-	response := helpers.NewErrorResponse("Non authentifié", nil)
+	response := helpers.NewResponse("Non authentifié", nil)
 	ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 }
 
@@ -55,7 +55,7 @@ func (u *userController) Get(ctx *gin.Context) {
 func (u *userController) Update(ctx *gin.Context) {
 	var userDto dto.UserUpdateDto
 	if errDto := ctx.ShouldBind(&userDto); errDto != nil {
-		response := helpers.NewErrorResponse("Informations invalides", nil)
+		response := helpers.NewResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
@@ -66,10 +66,10 @@ func (u *userController) Update(ctx *gin.Context) {
 	res := u.userService.Update(userDto)
 
 	if _, ok := res.(models.User); ok {
-		response := helpers.NewResponse(true, "Profil modifié", nil)
+		response := helpers.NewResponse("Profil modifié", nil)
 		ctx.JSON(http.StatusOK, response)
 		return
 	}
-	response := helpers.NewErrorResponse("Impossible de modifier le profil", nil)
+	response := helpers.NewResponse("Impossible de modifier le profil", nil)
 	ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 }

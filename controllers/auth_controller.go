@@ -40,21 +40,21 @@ func (a *authController) Routes(e *gin.Engine) {
 func (a *authController) Register(ctx *gin.Context) {
 	var userDto dto.UserCreateDto
 	if errDto := ctx.ShouldBind(&userDto); errDto != nil {
-		response := helpers.NewErrorResponse("Informations invalides", nil)
+		response := helpers.NewResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
 	if userDto.Password != userDto.Confirm {
-		response := helpers.NewErrorResponse("Le mot de passe et la confirmation du mot de passe sont différents", nil)
+		response := helpers.NewResponse("Le mot de passe et la confirmation sont différents", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
 	if a.authService.IsDuplicateEmail(userDto.Email) {
-		response := helpers.NewErrorResponse("Un email est déjà associé à un compte", nil)
+		response := helpers.NewResponse("Un email est déjà associé à ce compte", nil)
 		ctx.AbortWithStatusJSON(http.StatusConflict, response)
 	} else {
 		a.authService.Register(userDto)
-		response := helpers.NewResponse(true, "Compte créé", nil)
+		response := helpers.NewResponse("Compte créé", nil)
 		ctx.JSON(http.StatusCreated, response)
 	}
 }
@@ -63,7 +63,7 @@ func (a *authController) Register(ctx *gin.Context) {
 func (a *authController) Login(ctx *gin.Context) {
 	var userDto dto.UserDto
 	if errDto := ctx.ShouldBind(&userDto); errDto != nil {
-		response := helpers.NewErrorResponse("Informations invalides", nil)
+		response := helpers.NewResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
@@ -71,10 +71,10 @@ func (a *authController) Login(ctx *gin.Context) {
 
 	if user, ok := res.(models.User); ok {
 		token := a.jwtHelper.GenerateToken(user.Id)
-		response := helpers.NewResponse(true, "OK", token)
+		response := helpers.NewResponse("", token)
 		ctx.JSON(http.StatusOK, response)
 	} else {
-		response := helpers.NewErrorResponse("Informations invalides", nil)
+		response := helpers.NewResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
 	}
 }

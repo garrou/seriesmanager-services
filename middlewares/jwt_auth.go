@@ -12,14 +12,14 @@ func AuthorizeJwt(jwtHelper helpers.JwtHelper) gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 
 		if authHeader == "" {
-			response := helpers.NewErrorResponse("Aucun token", nil)
+			response := helpers.NewResponse("Aucun token", nil)
 			c.AbortWithStatusJSON(http.StatusBadRequest, response)
 			return
 		}
 		token, err := jwtHelper.ValidateToken(authHeader)
 
 		if !token.Valid || err != nil {
-			response := helpers.NewErrorResponse("Token invalide", nil)
+			response := helpers.NewResponse("Token invalide", nil)
 			c.AbortWithStatusJSON(http.StatusUnauthorized, response)
 		}
 	}
