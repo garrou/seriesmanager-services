@@ -16,7 +16,7 @@ type SeriesController interface {
 	Routes(e *gin.Engine)
 	PostSeries(ctx *gin.Context)
 	GetAll(ctx *gin.Context)
-	GetByTitle(ctx *gin.Context)
+	GetByName(ctx *gin.Context)
 	GetInfosById(ctx *gin.Context)
 	Delete(ctx *gin.Context)
 }
@@ -35,7 +35,8 @@ func (s *seriesController) Routes(e *gin.Engine) {
 	{
 		routes.POST("/", s.PostSeries)
 		routes.GET("/", s.GetAll)
-		routes.GET("/titles/:title", s.GetByTitle)
+		routes.GET("/names", s.GetByName)
+		routes.GET("/names/:name", s.GetByName)
 		routes.GET("/:id/infos", s.GetInfosById)
 		routes.DELETE("/:id", s.Delete)
 	}
@@ -72,10 +73,10 @@ func (s *seriesController) GetAll(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-// GetByTitle returns all series with title matching
-func (s *seriesController) GetByTitle(ctx *gin.Context) {
+// GetByName returns all series with title matching
+func (s *seriesController) GetByName(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
-	series := s.seriesService.GetByTitle(userId, ctx.Param("title"))
+	series := s.seriesService.GetByUserIdByName(userId, ctx.Param("name"))
 	response := helpers.NewResponse("", series)
 	ctx.JSON(http.StatusOK, response)
 }

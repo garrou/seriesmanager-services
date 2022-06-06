@@ -8,7 +8,7 @@ import (
 type SeriesRepository interface {
 	Save(series models.Series) models.Series
 	FindByUserId(userId string) []models.Series
-	FindByUserIdAndTitle(userId, title string) []models.Series
+	FindByUserIdAndName(userId, name string) []models.Series
 	Exists(seriesId int, userId string) *gorm.DB
 	FindInfosBySeriesId(seriesId int) models.SeriesInfo
 	DeleteByUserBySeriesId(userId string, seriesId int) bool
@@ -39,7 +39,7 @@ func (s *seriesRepository) FindByUserId(userId string) []models.Series {
 	return nil
 }
 
-func (s *seriesRepository) FindByUserIdAndTitle(userId, title string) []models.Series {
+func (s *seriesRepository) FindByUserIdAndName(userId, title string) []models.Series {
 	var series []models.Series
 	res := s.db.Find(&series, "user_id = ? AND UPPER(title) LIKE UPPER(?)", userId, "%"+title+"%")
 
