@@ -12,10 +12,11 @@ import (
 
 type UserController interface {
 	Routes(e *gin.Engine)
-	Update(ctx *gin.Context)
 	Get(ctx *gin.Context)
 	GetProfile(ctx *gin.Context)
-	SetBanner(ctx *gin.Context)
+	UpdateBanner(ctx *gin.Context)
+	UpdateProfile(ctx *gin.Context)
+	UpdatePassword(ctx *gin.Context)
 }
 
 type userController struct {
@@ -32,8 +33,9 @@ func (u *userController) Routes(e *gin.Engine) {
 	{
 		routes.GET("/", u.Get)
 		routes.GET("/profile", u.GetProfile)
-		routes.PATCH("/profile/banner", u.SetBanner)
-		routes.PATCH("/profile", u.Update)
+		routes.PATCH("/profile", u.UpdateProfile)
+		routes.PATCH("/banner", u.UpdateBanner)
+		routes.PATCH("/password", u.UpdatePassword)
 	}
 }
 
@@ -68,39 +70,62 @@ func (u *userController) GetProfile(ctx *gin.Context) {
 	}
 }
 
-// Update updates the authenticated user account
-func (u *userController) Update(ctx *gin.Context) {
-	var userDto dto.UserUpdateDto
+// UpdateBanner updates the banner of the authenticated user
+func (u *userController) UpdateBanner(ctx *gin.Context) {
+	var body struct {
+		Banner string `json:"banner"`
+	}
+	_ = ctx.Bind(&body)
+	userId := u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	res := u.userService.UpdateBanner(userId, body.Banner)
+
+	if _, ok := res.(models.User); ok {
+		response := helpers.NewResponse("Bannière modifiée", nil)
+		ctx.JSON(http.StatusOK, response)
+	} else {
+		response := helpers.NewResponse("Impossible de modifier la bannière", nil)
+		ctx.AbortWithStatusJSON(http.StatusOK, response)
+	}
+}
+
+// UpdateProfile updates the authenticated user account
+func (u *userController) UpdateProfile(ctx *gin.Context) {
+	var userDto dto.UserUpdateProfileDto
+
 	if errDto := ctx.ShouldBind(&userDto); errDto != nil {
 		response := helpers.NewResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
 	userDto.Id = u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
-	res := u.userService.Update(userDto)
+	res := u.userService.UpdateProfile(userDto)
 
 	if _, ok := res.(models.User); ok {
 		response := helpers.NewResponse("Profil modifié", nil)
 		ctx.JSON(http.StatusOK, response)
-		return
+	} else {
+		response := helpers.NewResponse("Impossible de modifier le profil", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 	}
-	response := helpers.NewResponse("Impossible de modifier le profil", nil)
-	ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 }
 
-// SetBanner updates the banner of the authenticated user
-func (u *userController) SetBanner(ctx *gin.Context) {
-	var Body struct {
-		Banner string `json:"banner"`
-	}
-	_ = ctx.Bind(&Body)
-	userId := u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+// UpdatePassword updates authenticated user password
+func (u *userController) UpdatePassword(ctx *gin.Context) {
+	var userDto dto.UserUpdatePasswordDto
 
-	if u.userService.SetBanner(userId, Body.Banner) {
-		response := helpers.NewResponse("Bannière modifiée", nil)
+	if errDto := ctx.ShouldBind(&userDto); errDto != nil {
+		response := helpers.NewResponse("Informations invalides", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	}
+	userDto.Id = u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	res := u.userService.UpdatePassword(userDto)
+
+	if _, ok := res.(models.User); ok {
+		response := helpers.NewResponse("Mot de passe modifié", nil)
 		ctx.JSON(http.StatusOK, response)
 	} else {
-		response := helpers.NewResponse("Impossible de modifier la bannière", nil)
-		ctx.AbortWithStatusJSON(http.StatusOK, response)
+		response := helpers.NewResponse("Impossible de modifier le mot de passe", nil)
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, response)
 	}
 }

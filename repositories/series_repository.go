@@ -51,7 +51,7 @@ func (s *seriesRepository) FindByUserIdAndTitle(userId, title string) []models.S
 
 func (s *seriesRepository) Exists(seriesId int, userId string) *gorm.DB {
 	var series models.Series
-	return s.db.Take(&series, "id = ? AND user_id = ?", seriesId, userId)
+	return s.db.Take(&series, "sid = ? AND user_id = ?", seriesId, userId)
 }
 
 func (s *seriesRepository) FindInfosBySeriesId(seriesId int) models.SeriesInfo {

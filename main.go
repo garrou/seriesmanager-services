@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"os"
 	"seriesmanager-services/controllers"
 	"seriesmanager-services/database"
 	"seriesmanager-services/helpers"
@@ -39,6 +40,7 @@ func main() {
 
 	defer database.Close(db)
 
+	gin.SetMode(os.Getenv("GIN_MODE"))
 	router := gin.Default()
 	router.Use(middlewares.Cors())
 

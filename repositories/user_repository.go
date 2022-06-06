@@ -10,8 +10,7 @@ type UserRepository interface {
 	Save(user models.User) models.User
 	FindByEmail(email string) interface{}
 	FindById(id string) interface{}
-	Exists(email string) (tx *gorm.DB)
-	SaveBanner(id, banner string) bool
+	Exists(email string) *gorm.DB
 }
 
 type userRepository struct {
@@ -51,12 +50,4 @@ func (u *userRepository) FindById(id string) interface{} {
 
 func (u *userRepository) Exists(email string) *gorm.DB {
 	return u.db.Take(&models.User{}, "email = ?", email)
-}
-
-func (u *userRepository) SaveBanner(id, banner string) bool {
-	res := u.db.
-		Model(models.User{}).
-		Where("id = ?", id).
-		Update("banner", banner)
-	return res.Error == nil
 }
