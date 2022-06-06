@@ -46,4 +46,4 @@ func Close(db *gorm.DB) {
 	}
 }
 
-// TODO: delete with userId each time
+// TODO: delete, add with userId each time

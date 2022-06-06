@@ -60,7 +60,8 @@ type Details struct {
 	}
 }
 
-type SearchSeries struct {
+// SearchedSeries represents the results of api search series by name
+type SearchedSeries struct {
 	Series []struct {
 		Id     int    `json:"id"`
 		Title  string `json:"title"`
@@ -88,4 +89,10 @@ type SearchSeries struct {
 			} `json:"svods"`
 		} `json:"platforms"`
 	} `json:"shows"`
+}
+
+type Pictures struct {
+	Pictures []struct {
+		Url string `json:"url"`
+	} `json:"pictures"`
 }

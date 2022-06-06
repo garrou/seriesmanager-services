@@ -9,10 +9,11 @@ import (
 )
 
 type SearchService interface {
-	Discover() dto.SearchSeries
-	SearchSeriesByName(name string) dto.SearchSeries
+	Discover() dto.SearchedSeries
+	SearchSeriesByName(name string) dto.SearchedSeries
 	SearchSeasonsBySid(seriesId string) dto.SearchSeasons
 	SearchEpisodesBySidBySeason(seriesId string, seasonNumber string) dto.SearchEpisodes
+	SearchImagesBySeriesName(name string) []string
 }
 
 type searchService struct {
@@ -22,10 +23,10 @@ func NewSearchService() SearchService {
 	return &searchService{}
 }
 
-func (s *searchService) Discover() dto.SearchSeries {
+func (s *searchService) Discover() dto.SearchedSeries {
 	apiKey := os.Getenv("API_KEY")
 	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/discover?limit=%d&key=%s", 20, apiKey))
-	var series dto.SearchSeries
+	var series dto.SearchedSeries
 
 	if err := json.Unmarshal(body, &series); err != nil {
 		panic(err.Error())
@@ -33,10 +34,10 @@ func (s *searchService) Discover() dto.SearchSeries {
 	return series
 }
 
-func (s *searchService) SearchSeriesByName(name string) dto.SearchSeries {
+func (s *searchService) SearchSeriesByName(name string) dto.SearchedSeries {
 	apiKey := os.Getenv("API_KEY")
 	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/search?title=%s&key=%s", name, apiKey))
-	var series dto.SearchSeries
+	var series dto.SearchedSeries
 
 	if err := json.Unmarshal(body, &series); err != nil {
 		panic(err.Error())
@@ -64,4 +65,26 @@ func (s *searchService) SearchEpisodesBySidBySeason(sid, seasonNumber string) dt
 		panic(err.Error())
 	}
 	return episodes
+}
+
+func (s *searchService) SearchImagesBySeriesName(name string) []string {
+	var searchedSeries dto.SearchedSeries
+	apiKey := os.Getenv("API_KEY")
+	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/search?title=%s&key=%s", name, apiKey))
+
+	if err := json.Unmarshal(body, &searchedSeries); err != nil {
+		panic(err.Error())
+	}
+	images := make([]dto.Pictures, len(searchedSeries.Series))
+	var urls []string
+
+	for i, series := range searchedSeries.Series {
+		body = helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/pictures?id=%d&key=%s", series.Id, apiKey))
+		json.Unmarshal(body, &images[i])
+
+		for _, u := range images[i].Pictures {
+			urls = append(urls, u.Url)
+		}
+	}
+	return urls
 }

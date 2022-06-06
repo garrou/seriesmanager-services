@@ -10,6 +10,7 @@ import (
 type UserService interface {
 	Get(id string) interface{}
 	Update(user dto.UserUpdateDto) interface{}
+	SetBanner(id, image string) bool
 }
 
 type userService struct {
@@ -22,6 +23,10 @@ func NewUserService(userRepository repositories.UserRepository) UserService {
 
 func (u *userService) Get(id string) interface{} {
 	return u.userRepository.FindById(id)
+}
+
+func (u *userService) SetBanner(id, image string) bool {
+	return u.userRepository.SaveBanner(id, image)
 }
 
 func (u *userService) Update(toUpdate dto.UserUpdateDto) interface{} {

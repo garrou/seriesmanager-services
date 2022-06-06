@@ -15,6 +15,7 @@ type UserController interface {
 	Update(ctx *gin.Context)
 	Get(ctx *gin.Context)
 	GetProfile(ctx *gin.Context)
+	SetBanner(ctx *gin.Context)
 }
 
 type userController struct {
@@ -31,6 +32,7 @@ func (u *userController) Routes(e *gin.Engine) {
 	{
 		routes.GET("/", u.Get)
 		routes.GET("/profile", u.GetProfile)
+		routes.PATCH("/profile/banner", u.SetBanner)
 		routes.PATCH("/profile", u.Update)
 	}
 }
@@ -84,4 +86,21 @@ func (u *userController) Update(ctx *gin.Context) {
 	}
 	response := helpers.NewResponse("Impossible de modifier le profil", nil)
 	ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+}
+
+// SetBanner updates the banner of the authenticated user
+func (u *userController) SetBanner(ctx *gin.Context) {
+	var Body struct {
+		Banner string `json:"banner"`
+	}
+	_ = ctx.Bind(&Body)
+	userId := u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+
+	if u.userService.SetBanner(userId, Body.Banner) {
+		response := helpers.NewResponse("Bannière modifiée", nil)
+		ctx.JSON(http.StatusOK, response)
+	} else {
+		response := helpers.NewResponse("Impossible de modifier la bannière", nil)
+		ctx.AbortWithStatusJSON(http.StatusOK, response)
+	}
 }

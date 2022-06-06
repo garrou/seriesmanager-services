@@ -15,6 +15,7 @@ type SearchController interface {
 	GetSeasonsBySid(ctx *gin.Context)
 	GetEpisodesBySidBySeason(ctx *gin.Context)
 	Get(ctx *gin.Context)
+	GetImagesBySeriesName(ctx *gin.Context)
 }
 
 type searchController struct {
@@ -34,6 +35,7 @@ func (s *searchController) Routes(e *gin.Engine) {
 		routes.GET("/names/:name", s.GetSeriesByName)
 		routes.GET("/series/:sid/seasons", s.GetSeasonsBySid)
 		routes.GET("/series/:sid/seasons/:number/episodes", s.GetEpisodesBySidBySeason)
+		routes.GET("/names/:name/images", s.GetImagesBySeriesName)
 	}
 }
 
@@ -67,5 +69,12 @@ func (s *searchController) GetSeasonsBySid(ctx *gin.Context) {
 func (s *searchController) GetEpisodesBySidBySeason(ctx *gin.Context) {
 	episodes := s.searchService.SearchEpisodesBySidBySeason(ctx.Param("sid"), ctx.Param("number"))
 	response := helpers.NewResponse("", episodes)
+	ctx.JSON(http.StatusOK, response)
+}
+
+// GetImagesBySeriesName calls api to get series image with his name
+func (s *searchController) GetImagesBySeriesName(ctx *gin.Context) {
+	images := s.searchService.SearchImagesBySeriesName(ctx.Param("name"))
+	response := helpers.NewResponse("", images)
 	ctx.JSON(http.StatusOK, response)
 }

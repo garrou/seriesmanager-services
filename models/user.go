@@ -11,7 +11,7 @@ type User struct {
 	Email    string `gorm:"unique;type:varchar(255);not null;"`
 	Password string `gorm:"not null;"`
 	JoinedAt time.Time
-	Banner   string
+	Banner   string `gorm:"type:varchar(150)"`
 	Series   []Series
 }
 
