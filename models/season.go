@@ -21,3 +21,9 @@ type SeasonInfos struct {
 	FinishedAt time.Time `json:"finishedAt"`
 	Duration   int       `json:"duration"`
 }
+
+type SeasonStat struct {
+	Started  int `json:"started"`
+	Finished int `json:"finished"`
+	Num      int `json:"num"`
+}

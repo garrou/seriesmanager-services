@@ -34,6 +34,10 @@ var (
 	seasonRepository = repositories.NewSeasonRepository(db)
 	seasonService    = services.NewSeasonService(seasonRepository)
 	seasonController = controllers.NewSeasonController(seasonService, jwtHelper)
+
+	statsRepository = repositories.NewStatsRepository(db)
+	statsService    = services.NewStatsService(statsRepository)
+	statsController = controllers.NewStatsController(statsService, jwtHelper)
 )
 
 func main() {
@@ -52,6 +56,7 @@ func main() {
 	searchController.Routes(router)
 	seriesController.Routes(router)
 	seasonController.Routes(router)
+	statsController.Routes(router)
 
 	if err := router.Run("localhost:8080"); err != nil {
 		log.Fatal(err)
