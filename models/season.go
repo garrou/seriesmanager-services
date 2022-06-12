@@ -22,6 +22,7 @@ type SeasonInfos struct {
 	Duration   int       `json:"duration"`
 }
 
+// SeasonStat represents number of seasons by years
 type SeasonStat struct {
 	Started  int `json:"started"`
 	Finished int `json:"finished"`

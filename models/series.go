@@ -24,3 +24,8 @@ type SeriesInfo struct {
 	StartedAt  time.Time `json:"startedAt"`
 	FinishedAt time.Time `json:"finishedAt"`
 }
+
+// SeriesStat contains some information from series table
+type SeriesStat struct {
+	Total int `json:"total"`
+}

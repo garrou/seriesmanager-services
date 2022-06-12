@@ -14,5 +14,3 @@ type User struct {
 	Banner   string `gorm:"type:varchar(150)"`
 	Series   []Series
 }
-
-// TODO: add avatar
