@@ -9,6 +9,7 @@ type SeasonRepository interface {
 	FindDistinctBySeriesId(seriesId string) []models.Season
 	Save(series models.Season) models.Season
 	FindInfosBySeriesIdBySeason(seriesId, number string) []models.SeasonInfos
+	FindDetailsSeasonsNbViewed(userId, seriesId string) []models.SeasonDetailsViewed
 }
 
 type seasonRepository struct {
@@ -43,4 +44,16 @@ func (s *seasonRepository) FindInfosBySeriesIdBySeason(seriesId, number string) 
 		Group("started_at, finished_at, episodes, episode_length").
 		Scan(&infos)
 	return infos
+}
+
+func (s *seasonRepository) FindDetailsSeasonsNbViewed(userId, seriesId string) []models.SeasonDetailsViewed {
+	var details []models.SeasonDetailsViewed
+	s.db.
+		Model(models.Season{}).
+		Select("number, COUNT(*) AS total").
+		Joins("JOIN series ON seasons.series_id = series.id").
+		Where("user_id = ? AND seasons.series_id = ?", userId, seriesId).
+		Group("number").
+		Scan(&details)
+	return details
 }

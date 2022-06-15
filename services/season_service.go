@@ -11,6 +11,7 @@ type SeasonService interface {
 	AddSeason(season dto.SeasonCreateDto) interface{}
 	GetDistinctBySeriesId(seriesId string) []models.Season
 	GetInfosBySeasonBySeriesId(seriesId, number string) []models.SeasonInfos
+	GetDetailsSeasonsNbViewed(userId, seriesId string) []models.SeasonDetailsViewed
 }
 
 type seasonService struct {
@@ -46,4 +47,8 @@ func (s *seasonService) GetDistinctBySeriesId(seriesId string) []models.Season {
 
 func (s *seasonService) GetInfosBySeasonBySeriesId(seriesId, number string) []models.SeasonInfos {
 	return s.seasonRepository.FindInfosBySeriesIdBySeason(seriesId, number)
+}
+
+func (s *seasonService) GetDetailsSeasonsNbViewed(userId, seriesId string) []models.SeasonDetailsViewed {
+	return s.seasonRepository.FindDetailsSeasonsNbViewed(userId, seriesId)
 }

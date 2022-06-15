@@ -28,3 +28,9 @@ type SeasonStat struct {
 	Finished int `json:"finished"`
 	Num      int `json:"num"`
 }
+
+// SeasonDetailsViewed represents number of time seasons are viewed
+type SeasonDetailsViewed struct {
+	Number int `json:"number"`
+	Total  int `json:"total"`
+}

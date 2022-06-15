@@ -10,7 +10,7 @@ type SeriesRepository interface {
 	FindByUserId(userId string) []models.Series
 	FindByUserIdAndName(userId, name string) []models.Series
 	Exists(seriesId int, userId string) *gorm.DB
-	FindInfosBySeriesId(seriesId int) models.SeriesInfo
+	FindInfosBySeriesId(seriesId string) models.SeriesInfo
 	DeleteByUserBySeriesId(userId string, seriesId int) bool
 }
 
@@ -54,7 +54,7 @@ func (s *seriesRepository) Exists(seriesId int, userId string) *gorm.DB {
 	return s.db.Take(&series, "sid = ? AND user_id = ?", seriesId, userId)
 }
 
-func (s *seriesRepository) FindInfosBySeriesId(seriesId int) models.SeriesInfo {
+func (s *seriesRepository) FindInfosBySeriesId(seriesId string) models.SeriesInfo {
 	var infos models.SeriesInfo
 	s.db.
 		Model(&models.Series{}).

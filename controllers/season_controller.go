@@ -15,6 +15,7 @@ type SeasonController interface {
 	PostSeason(ctx *gin.Context)
 	GetDistinctBySid(ctx *gin.Context)
 	GetInfosBySeasonBySeriesId(ctx *gin.Context)
+	GetDetailsSeasonsNbViewed(ctx *gin.Context)
 }
 
 type seasonController struct {
@@ -32,6 +33,7 @@ func (s *seasonController) Routes(e *gin.Engine) {
 		routes.POST("/", s.PostSeason)
 		routes.GET("/series/:id", s.GetDistinctBySid)
 		routes.GET("/:number/series/:id/infos", s.GetInfosBySeasonBySeriesId)
+		routes.GET("/series/:id/viewed", s.GetDetailsSeasonsNbViewed)
 	}
 }
 
@@ -64,6 +66,14 @@ func (s *seasonController) GetDistinctBySid(ctx *gin.Context) {
 // GetInfosBySeasonBySeriesId get season user infos
 func (s *seasonController) GetInfosBySeasonBySeriesId(ctx *gin.Context) {
 	infos := s.seasonService.GetInfosBySeasonBySeriesId(ctx.Param("id"), ctx.Param("number"))
+	response := helpers.NewResponse("", infos)
+	ctx.JSON(http.StatusOK, response)
+}
+
+// GetDetailsSeasonsNbViewed get the number of each season was viewed
+func (s *seasonController) GetDetailsSeasonsNbViewed(ctx *gin.Context) {
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	infos := s.seasonService.GetDetailsSeasonsNbViewed(userId, ctx.Param("id"))
 	response := helpers.NewResponse("", infos)
 	ctx.JSON(http.StatusOK, response)
 }

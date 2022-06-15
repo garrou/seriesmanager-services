@@ -8,6 +8,7 @@ import (
 type StatsService interface {
 	GetNbSeasonsByYears(userId string) []models.SeasonStat
 	GetTimeSeasonsByYears(userId string) []models.SeasonStat
+	GetEpisodesByYears(userId string) []models.SeasonStat
 	GetTotalSeries(userId string) int64
 	GetTotalTime(userId string) models.SeriesStat
 	GetCurrentTimeWeek(userId string) models.SeriesStat
@@ -27,6 +28,10 @@ func (s *statsService) GetNbSeasonsByYears(userId string) []models.SeasonStat {
 
 func (s *statsService) GetTimeSeasonsByYears(userId string) []models.SeasonStat {
 	return s.statsRepository.FindTimeSeasonsByYears(userId)
+}
+
+func (s *statsService) GetEpisodesByYears(userId string) []models.SeasonStat {
+	return s.statsRepository.FindEpisodesByYears(userId)
 }
 
 func (s *statsService) GetTotalSeries(userId string) int64 {

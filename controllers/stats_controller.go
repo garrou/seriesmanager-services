@@ -12,6 +12,7 @@ type StatsController interface {
 	Routes(e *gin.Engine)
 	GetNbSeasonsByYears(ctx *gin.Context)
 	GetTimeSeasonsByYears(ctx *gin.Context)
+	GetNbEpisodesByYears(ctx *gin.Context)
 	GetTotalSeries(ctx *gin.Context)
 	GetTotalTime(ctx *gin.Context)
 	GetTimeCurrentWeek(ctx *gin.Context)
@@ -31,6 +32,7 @@ func (s *statsController) Routes(e *gin.Engine) {
 	{
 		routes.GET("/seasons/years", s.GetNbSeasonsByYears)
 		routes.GET("/seasons/time", s.GetTimeSeasonsByYears)
+		routes.GET("/episodes/years", s.GetNbEpisodesByYears)
 		routes.GET("/series/count", s.GetTotalSeries)
 		routes.GET("/time", s.GetTotalTime)
 		routes.GET("/time/week", s.GetTimeCurrentWeek)
@@ -39,6 +41,13 @@ func (s *statsController) Routes(e *gin.Engine) {
 func (s *statsController) GetNbSeasonsByYears(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	stats := s.statsService.GetNbSeasonsByYears(userId)
+	response := helpers.NewResponse("", stats)
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (s *statsController) GetNbEpisodesByYears(ctx *gin.Context) {
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	stats := s.statsService.GetEpisodesByYears(userId)
 	response := helpers.NewResponse("", stats)
 	ctx.JSON(http.StatusOK, response)
 }

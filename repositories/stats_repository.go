@@ -8,6 +8,7 @@ import (
 type StatsRepository interface {
 	FindNbSeasonsByYears(userId string) []models.SeasonStat
 	FindTimeSeasonsByYears(userId string) []models.SeasonStat
+	FindEpisodesByYears(userId string) []models.SeasonStat
 	FindTotalSeries(userId string) int64
 	FindTotalTime(userId string) models.SeriesStat
 	FindTimeCurrentWeek(userId string) models.SeriesStat
@@ -44,6 +45,21 @@ func (s *statsRepository) FindTimeSeasonsByYears(userId string) []models.SeasonS
 		Select(`EXTRACT(YEAR FROM started_at) AS started,
 			EXTRACT(YEAR FROM finished_at) AS finished, 
 			SUM(episode_length * episodes) AS num`).
+		Joins("JOIN seasons ON seasons.series_id = series.id").
+		Where("user_id = ?", userId).
+		Group("started, finished").
+		Order("started").
+		Scan(&stats)
+	return stats
+}
+
+func (s *statsRepository) FindEpisodesByYears(userId string) []models.SeasonStat {
+	var stats []models.SeasonStat
+	s.db.
+		Model(models.Series{}).
+		Select(`EXTRACT(YEAR FROM started_at) AS started,
+			EXTRACT(YEAR FROM finished_at) AS finished, 
+			SUM(episodes) AS num`).
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where("user_id = ?", userId).
 		Group("started, finished").

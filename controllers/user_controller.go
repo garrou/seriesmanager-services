@@ -13,7 +13,6 @@ import (
 type UserController interface {
 	Routes(e *gin.Engine)
 	Get(ctx *gin.Context)
-	GetProfile(ctx *gin.Context)
 	UpdateBanner(ctx *gin.Context)
 	UpdateProfile(ctx *gin.Context)
 	UpdatePassword(ctx *gin.Context)
@@ -32,7 +31,6 @@ func (u *userController) Routes(e *gin.Engine) {
 	routes := e.Group("/api/user", middlewares.AuthorizeJwt(u.jwtHelper))
 	{
 		routes.GET("/", u.Get)
-		routes.GET("/profile", u.GetProfile)
 		routes.PATCH("/profile", u.UpdateProfile)
 		routes.PATCH("/banner", u.UpdateBanner)
 		routes.PATCH("/password", u.UpdatePassword)
@@ -41,18 +39,6 @@ func (u *userController) Routes(e *gin.Engine) {
 
 // Get gets the authenticated user
 func (u *userController) Get(ctx *gin.Context) {
-	userId := u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
-	res := u.userService.Get(userId)
-
-	if _, ok := res.(models.User); ok {
-		ctx.Status(http.StatusOK)
-	} else {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-	}
-}
-
-// GetProfile gets the user's profile
-func (u *userController) GetProfile(ctx *gin.Context) {
 	userId := u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	res := u.userService.Get(userId)
 
