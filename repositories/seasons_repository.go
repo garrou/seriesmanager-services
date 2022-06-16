@@ -7,7 +7,7 @@ import (
 
 type SeasonRepository interface {
 	FindDistinctBySeriesId(seriesId string) []models.Season
-	Save(series models.Season) models.Season
+	Save(season models.Season) models.Season
 	FindInfosBySeriesIdBySeason(seriesId, number string) []models.SeasonInfos
 	FindDetailsSeasonsNbViewed(userId, seriesId string) []models.SeasonDetailsViewed
 }

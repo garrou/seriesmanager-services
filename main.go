@@ -33,7 +33,7 @@ var (
 	seriesController = controllers.NewSeriesController(seriesService, jwtHelper)
 
 	seasonRepository = repositories.NewSeasonRepository(db)
-	seasonService    = services.NewSeasonService(seasonRepository)
+	seasonService    = services.NewSeasonService(seasonRepository, seriesRepository)
 	seasonController = controllers.NewSeasonController(seasonService, jwtHelper)
 
 	statsRepository = repositories.NewStatsRepository(db)
