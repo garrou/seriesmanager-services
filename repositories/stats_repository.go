@@ -13,6 +13,7 @@ type StatsRepository interface {
 	FindTotalTime(userId string) models.SeriesStat
 	FindTimeCurrentWeek(userId string) models.SeriesStat
 	FindTimeCurrentYear(userId string) models.SeriesStat
+	FindAddedSeriesByYears(userId string) []models.SeriesAddedYears
 }
 
 type statsRepository struct {
@@ -108,6 +109,17 @@ func (s *statsRepository) FindTimeCurrentYear(userId string) models.SeriesStat {
 		Where(`user_id = ? 
 				AND EXTRACT(year from started_at) = EXTRACT(year from now()) 
 				AND EXTRACT(year from finished_at) = EXTRACT(year from now())`, userId).
+		Scan(&stats)
+	return stats
+}
+
+func (s *statsRepository) FindAddedSeriesByYears(userId string) []models.SeriesAddedYears {
+	var stats []models.SeriesAddedYears
+	s.db.
+		Model(models.Series{}).
+		Select("EXTRACT(YEAR FROM added_at) AS added, COUNT(*) AS total").
+		Where("user_id = ?", userId).
+		Group("added").
 		Scan(&stats)
 	return stats
 }

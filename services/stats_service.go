@@ -12,6 +12,7 @@ type StatsService interface {
 	GetTotalSeries(userId string) int64
 	GetTotalTime(userId string) models.SeriesStat
 	GetCurrentTimeWeek(userId string) models.SeriesStat
+	GetAddedSeriesByYears(userId string) []models.SeriesAddedYears
 }
 
 type statsService struct {
@@ -44,4 +45,8 @@ func (s *statsService) GetTotalTime(userId string) models.SeriesStat {
 
 func (s *statsService) GetCurrentTimeWeek(userId string) models.SeriesStat {
 	return s.statsRepository.FindTimeCurrentWeek(userId)
+}
+
+func (s *statsService) GetAddedSeriesByYears(userId string) []models.SeriesAddedYears {
+	return s.statsRepository.FindAddedSeriesByYears(userId)
 }
