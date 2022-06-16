@@ -25,7 +25,7 @@ func NewSearchService() SearchService {
 
 func (s *searchService) Discover() dto.SearchedSeries {
 	apiKey := os.Getenv("API_KEY")
-	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/discover?limit=%d&key=%s", 20, apiKey))
+	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/discover?limit=%d&key=%s", 50, apiKey))
 	var series dto.SearchedSeries
 
 	if err := json.Unmarshal(body, &series); err != nil {
@@ -80,7 +80,7 @@ func (s *searchService) SearchImagesBySeriesName(name string) []string {
 
 	for i, series := range searchedSeries.Series {
 		body = helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/pictures?id=%d&key=%s", series.Id, apiKey))
-		json.Unmarshal(body, &images[i])
+		_ = json.Unmarshal(body, &images[i])
 
 		for _, u := range images[i].Pictures {
 			urls = append(urls, u.Url)

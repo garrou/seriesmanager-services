@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"os"
 	"seriesmanager-services/controllers"
@@ -58,7 +59,7 @@ func main() {
 	seasonController.Routes(router)
 	statsController.Routes(router)
 
-	if err := router.Run("localhost:8080"); err != nil {
+	if err := router.Run(fmt.Sprintf(":%s", os.Getenv("PORT"))); err != nil {
 		log.Fatal(err)
 	}
 }

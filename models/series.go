@@ -25,7 +25,13 @@ type SeriesInfo struct {
 	FinishedAt time.Time `json:"finishedAt"`
 }
 
-// SeriesStat contains some information from series table
+// SeriesStat represents some information from series table
 type SeriesStat struct {
+	Total int `json:"total"`
+}
+
+// SeriesAddedYears represents number of series added by years
+type SeriesAddedYears struct {
+	Added int `json:"added"`
 	Total int `json:"total"`
 }

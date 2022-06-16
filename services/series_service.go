@@ -12,7 +12,7 @@ type SeriesService interface {
 	GetAll(userId string) []dto.SeriesPreviewDto
 	GetByUserIdByName(userId, title string) []dto.SeriesPreviewDto
 	IsDuplicateSeries(series dto.SeriesCreateDto) bool
-	GetInfosBySeriesId(seriesId int) models.SeriesInfo
+	GetInfosBySeriesId(seriesId string) models.SeriesInfo
 	DeleteByUserIdBySeriesId(userId string, seriesId int) bool
 }
 
@@ -74,7 +74,7 @@ func (s *seriesService) IsDuplicateSeries(series dto.SeriesCreateDto) bool {
 	return res.Error == nil
 }
 
-func (s *seriesService) GetInfosBySeriesId(seriesId int) models.SeriesInfo {
+func (s *seriesService) GetInfosBySeriesId(seriesId string) models.SeriesInfo {
 	return s.seriesRepository.FindInfosBySeriesId(seriesId)
 }
 

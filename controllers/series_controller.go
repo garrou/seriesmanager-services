@@ -1,9 +1,7 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 	"net/http"
 	"seriesmanager-services/dto"
 	"seriesmanager-services/helpers"
@@ -50,10 +48,8 @@ func (s *seriesController) PostSeries(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
 		return
 	}
-	authHeader := ctx.GetHeader("Authorization")
-	token, _ := s.jwtHelper.ValidateToken(authHeader)
-	claims := token.Claims.(jwt.MapClaims)
-	seriesDto.UserId = fmt.Sprintf("%s", claims["id"])
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	seriesDto.UserId = userId
 
 	if s.seriesService.IsDuplicateSeries(seriesDto) {
 		response := helpers.NewResponse("Vous avez déjà ajouté cette série", nil)
@@ -83,15 +79,9 @@ func (s *seriesController) GetByName(ctx *gin.Context) {
 
 // GetInfosById returns series by id
 func (s *seriesController) GetInfosById(ctx *gin.Context) {
-	seriesId, err := strconv.Atoi(ctx.Param("id"))
-
-	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
-	} else {
-		infos := s.seriesService.GetInfosBySeriesId(seriesId)
-		response := helpers.NewResponse("", infos)
-		ctx.JSON(http.StatusOK, response)
-	}
+	infos := s.seriesService.GetInfosBySeriesId(ctx.Param("id"))
+	response := helpers.NewResponse("", infos)
+	ctx.JSON(http.StatusOK, response)
 }
 
 // Delete deletes series with userId and sid

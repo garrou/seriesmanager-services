@@ -8,10 +8,12 @@ import (
 type StatsRepository interface {
 	FindNbSeasonsByYears(userId string) []models.SeasonStat
 	FindTimeSeasonsByYears(userId string) []models.SeasonStat
+	FindEpisodesByYears(userId string) []models.SeasonStat
 	FindTotalSeries(userId string) int64
 	FindTotalTime(userId string) models.SeriesStat
 	FindTimeCurrentWeek(userId string) models.SeriesStat
 	FindTimeCurrentYear(userId string) models.SeriesStat
+	FindAddedSeriesByYears(userId string) []models.SeriesAddedYears
 }
 
 type statsRepository struct {
@@ -44,6 +46,21 @@ func (s *statsRepository) FindTimeSeasonsByYears(userId string) []models.SeasonS
 		Select(`EXTRACT(YEAR FROM started_at) AS started,
 			EXTRACT(YEAR FROM finished_at) AS finished, 
 			SUM(episode_length * episodes) AS num`).
+		Joins("JOIN seasons ON seasons.series_id = series.id").
+		Where("user_id = ?", userId).
+		Group("started, finished").
+		Order("started").
+		Scan(&stats)
+	return stats
+}
+
+func (s *statsRepository) FindEpisodesByYears(userId string) []models.SeasonStat {
+	var stats []models.SeasonStat
+	s.db.
+		Model(models.Series{}).
+		Select(`EXTRACT(YEAR FROM started_at) AS started,
+			EXTRACT(YEAR FROM finished_at) AS finished, 
+			SUM(episodes) AS num`).
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where("user_id = ?", userId).
 		Group("started, finished").
@@ -92,6 +109,17 @@ func (s *statsRepository) FindTimeCurrentYear(userId string) models.SeriesStat {
 		Where(`user_id = ? 
 				AND EXTRACT(year from started_at) = EXTRACT(year from now()) 
 				AND EXTRACT(year from finished_at) = EXTRACT(year from now())`, userId).
+		Scan(&stats)
+	return stats
+}
+
+func (s *statsRepository) FindAddedSeriesByYears(userId string) []models.SeriesAddedYears {
+	var stats []models.SeriesAddedYears
+	s.db.
+		Model(models.Series{}).
+		Select("EXTRACT(YEAR FROM added_at) AS added, COUNT(*) AS total").
+		Where("user_id = ?", userId).
+		Group("added").
 		Scan(&stats)
 	return stats
 }
