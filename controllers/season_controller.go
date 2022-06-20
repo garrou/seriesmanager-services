@@ -13,9 +13,10 @@ import (
 type SeasonController interface {
 	Routes(e *gin.Engine)
 	PostSeason(ctx *gin.Context)
-	GetDistinctBySid(ctx *gin.Context)
+	GetDistinctBySeriesId(ctx *gin.Context)
 	GetInfosBySeasonBySeriesId(ctx *gin.Context)
 	GetDetailsSeasonsNbViewed(ctx *gin.Context)
+	PostAllSeasonsSeries(ctx *gin.Context)
 }
 
 type seasonController struct {
@@ -31,7 +32,8 @@ func (s *seasonController) Routes(e *gin.Engine) {
 	routes := e.Group("/api/seasons", middlewares.AuthorizeJwt(s.jwtHelper))
 	{
 		routes.POST("/", s.PostSeason)
-		routes.GET("/series/:id", s.GetDistinctBySid)
+		routes.POST("/series/:id/all", s.PostAllSeasonsSeries)
+		routes.GET("/series/:id", s.GetDistinctBySeriesId)
 		routes.GET("/:number/series/:id/infos", s.GetInfosBySeasonBySeriesId)
 		routes.GET("/series/:id/viewed", s.GetDetailsSeasonsNbViewed)
 	}
@@ -56,8 +58,8 @@ func (s *seasonController) PostSeason(ctx *gin.Context) {
 	}
 }
 
-// GetDistinctBySid gets series seasons by series sid
-func (s *seasonController) GetDistinctBySid(ctx *gin.Context) {
+// GetDistinctBySeriesId gets series seasons by series sid
+func (s *seasonController) GetDistinctBySeriesId(ctx *gin.Context) {
 	seasons := s.seasonService.GetDistinctBySeriesId(ctx.Param("id"))
 	response := helpers.NewResponse("", seasons)
 	ctx.JSON(http.StatusOK, response)
@@ -76,4 +78,25 @@ func (s *seasonController) GetDetailsSeasonsNbViewed(ctx *gin.Context) {
 	infos := s.seasonService.GetDetailsSeasonsNbViewed(userId, ctx.Param("id"))
 	response := helpers.NewResponse("", infos)
 	ctx.JSON(http.StatusOK, response)
+}
+
+// PostAllSeasonsSeries allows user to add all seasons of a series
+func (s *seasonController) PostAllSeasonsSeries(ctx *gin.Context) {
+	var seasonsDto dto.SeasonsCreateAllDto
+	var response helpers.Response
+	if errDto := ctx.ShouldBind(&seasonsDto); errDto != nil {
+		response = helpers.NewResponse("Informations invalides", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	}
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	res := s.seasonService.AddAllSeasonsBySeries(userId, ctx.Param("id"), seasonsDto)
+
+	if seasons, ok := res.(dto.SeasonsCreateAllDto); ok {
+		response = helpers.NewResponse("Saisons ajoutées", seasons)
+		ctx.JSON(http.StatusOK, response)
+	} else {
+		response = helpers.NewResponse("Erreur durant l'ajout des saisons", nil)
+		ctx.JSON(http.StatusBadRequest, response)
+	}
 }

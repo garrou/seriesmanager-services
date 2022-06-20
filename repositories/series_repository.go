@@ -7,9 +7,10 @@ import (
 
 type SeriesRepository interface {
 	Save(series models.Series) models.Series
+	ExistsByUserIdSeriesId(userId, seriesId string) bool
 	FindByUserId(userId string) []models.Series
 	FindByUserIdAndName(userId, name string) []models.Series
-	Exists(seriesId int, userId string) *gorm.DB
+	Exists(sid int, userId string) *gorm.DB
 	FindInfosBySeriesId(seriesId string) models.SeriesInfo
 	DeleteByUserBySeriesId(userId string, seriesId int) bool
 }
@@ -49,9 +50,9 @@ func (s *seriesRepository) FindByUserIdAndName(userId, title string) []models.Se
 	return nil
 }
 
-func (s *seriesRepository) Exists(seriesId int, userId string) *gorm.DB {
+func (s *seriesRepository) Exists(sid int, userId string) *gorm.DB {
 	var series models.Series
-	return s.db.Take(&series, "sid = ? AND user_id = ?", seriesId, userId)
+	return s.db.Take(&series, "sid = ? AND user_id = ?", sid, userId)
 }
 
 func (s *seriesRepository) FindInfosBySeriesId(seriesId string) models.SeriesInfo {
@@ -71,8 +72,15 @@ MAX(finished_at) AS finished_at`).
 }
 
 func (s *seriesRepository) DeleteByUserBySeriesId(userId string, seriesId int) bool {
-	res := s.db.Select("Seasons").
+	res := s.db.
+		Select("Seasons").
 		Where("user_id = ? AND id = ?", userId, seriesId).
 		Delete(&models.Series{ID: seriesId})
+	return res.Error == nil
+}
+
+func (s *seriesRepository) ExistsByUserIdSeriesId(userId, seriesId string) bool {
+	var series models.Series
+	res := s.db.Take(&series, "user_id = ? AND id = ?", userId, seriesId)
 	return res.Error == nil
 }
