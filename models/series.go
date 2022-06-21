@@ -18,9 +18,11 @@ type Series struct {
 
 // SeriesInfo represents user series info
 type SeriesInfo struct {
-	Duration int `json:"duration"`
-	Seasons  int `json:"seasons"`
-	Episodes int `json:"episodes"`
+	Duration int       `json:"duration"`
+	Seasons  int       `json:"seasons"`
+	Episodes int       `json:"episodes"`
+	Begin    time.Time `json:"beginAt"`
+	End      time.Time `json:"endAt"`
 }
 
 // SeriesStat represents some information from series table

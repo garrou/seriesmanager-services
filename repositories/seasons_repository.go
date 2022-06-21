@@ -53,6 +53,7 @@ func (s *seasonRepository) FindDetailsSeasonsNbViewed(userId, seriesId string) [
 		Select("number, COUNT(*) AS total").
 		Joins("JOIN series ON seasons.series_id = series.id").
 		Where("user_id = ? AND seasons.series_id = ?", userId, seriesId).
+		Order("number").
 		Group("number").
 		Scan(&details)
 	return details

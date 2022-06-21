@@ -61,7 +61,9 @@ func (s *seriesRepository) FindInfosBySeriesId(seriesId string) models.SeriesInf
 		Model(&models.Series{}).
 		Select(`episode_length * SUM(episodes) AS duration, 
 COUNT(*) AS seasons, 
-SUM(episodes) AS episodes`).
+SUM(episodes) AS episodes,
+MIN(viewed_at) AS begin, 
+MAX(viewed_at) AS end`).
 		Joins("JOIN seasons ON series.id = seasons.series_id").
 		Where("series.id = ?", seriesId).
 		Group("episode_length").
