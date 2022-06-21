@@ -28,16 +28,12 @@ func NewSeasonService(seasonRepository repositories.SeasonRepository, seriesRepo
 }
 
 func (s *seasonService) AddSeason(season dto.SeasonCreateDto) interface{} {
-	if season.StartedAt.After(season.FinishedAt) {
-		return false
-	}
 	return s.seasonRepository.Save(models.Season{
-		Number:     season.Number,
-		Episodes:   season.Episodes,
-		Image:      season.Image,
-		StartedAt:  season.StartedAt,
-		FinishedAt: season.FinishedAt,
-		SeriesID:   season.SeriesId,
+		Number:   season.Number,
+		Episodes: season.Episodes,
+		Image:    season.Image,
+		ViewedAt: season.ViewedAt,
+		SeriesID: season.SeriesId,
 	})
 }
 
@@ -57,30 +53,18 @@ func (s *seasonService) AddAllSeasonsBySeries(userId, seriesId string, seasons d
 	exists := s.seriesRepository.ExistsByUserIdSeriesId(userId, seriesId)
 	id, err := strconv.Atoi(seriesId)
 
-	if !exists || seasons.Start.After(seasons.End) || err != nil {
+	if !exists || err != nil {
 		return false
 	}
-	days := int(seasons.End.Sub(seasons.Start).Hours() / 24)
-	nbSeasons := len(seasons.Seasons)
-	start := seasons.Start
 
 	for _, season := range seasons.Seasons {
-		daysToAdd := days / nbSeasons
-
-		if daysToAdd < 1 {
-			daysToAdd = 1
-		}
-		end := start.AddDate(0, 0, daysToAdd)
-
 		s.seasonRepository.Save(models.Season{
-			Number:     season.Number,
-			Episodes:   season.Episodes,
-			Image:      season.Image,
-			StartedAt:  start,
-			FinishedAt: end,
-			SeriesID:   id,
+			Number:   season.Number,
+			Episodes: season.Episodes,
+			Image:    season.Image,
+			ViewedAt: seasons.ViewedAt,
+			SeriesID: id,
 		})
-		start = end
 	}
 	return seasons
 }

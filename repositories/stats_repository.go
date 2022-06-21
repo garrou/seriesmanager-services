@@ -7,11 +7,12 @@ import (
 
 type StatsRepository interface {
 	FindNbSeasonsByYears(userId string) []models.SeasonStat
+	FindNbSeasonsByMonths(userId string) []models.SeasonMonthStat
 	FindTimeSeasonsByYears(userId string) []models.SeasonStat
 	FindEpisodesByYears(userId string) []models.SeasonStat
 	FindTotalSeries(userId string) int64
 	FindTotalTime(userId string) models.SeriesStat
-	FindTimeCurrentWeek(userId string) models.SeriesStat
+	FindTimeCurrentMonth(userId string) models.SeriesStat
 	FindTimeCurrentYear(userId string) models.SeriesStat
 	FindAddedSeriesByYears(userId string) []models.SeriesAddedYears
 }
@@ -28,13 +29,23 @@ func (s *statsRepository) FindNbSeasonsByYears(userId string) []models.SeasonSta
 	var stats []models.SeasonStat
 	s.db.
 		Model(models.Series{}).
-		Select(`EXTRACT(YEAR FROM started_at) AS started,
-			EXTRACT(YEAR FROM finished_at) AS finished,
-			COUNT(*) AS num`).
+		Select("EXTRACT(YEAR FROM viewed_at) AS viewed, COUNT(*) AS num").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where("user_id = ?", userId).
-		Group("started, finished").
-		Order("started").
+		Group("viewed").
+		Order("viewed").
+		Scan(&stats)
+	return stats
+}
+
+func (s *statsRepository) FindNbSeasonsByMonths(userId string) []models.SeasonMonthStat {
+	var stats []models.SeasonMonthStat
+	s.db.
+		Model(models.Series{}).
+		Select("TO_CHAR(viewed_at, 'Month') AS month, COUNT(*) AS num").
+		Joins("JOIN seasons ON seasons.series_id = series.id").
+		Where("user_id = ?", userId).
+		Group("month").
 		Scan(&stats)
 	return stats
 }
@@ -43,13 +54,11 @@ func (s *statsRepository) FindTimeSeasonsByYears(userId string) []models.SeasonS
 	var stats []models.SeasonStat
 	s.db.
 		Model(models.Series{}).
-		Select(`EXTRACT(YEAR FROM started_at) AS started,
-			EXTRACT(YEAR FROM finished_at) AS finished, 
-			SUM(episode_length * episodes) AS num`).
+		Select("EXTRACT(YEAR FROM viewed_at) AS viewed, SUM(episode_length * episodes) AS num").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where("user_id = ?", userId).
-		Group("started, finished").
-		Order("started").
+		Group("viewed").
+		Order("viewed").
 		Scan(&stats)
 	return stats
 }
@@ -58,13 +67,11 @@ func (s *statsRepository) FindEpisodesByYears(userId string) []models.SeasonStat
 	var stats []models.SeasonStat
 	s.db.
 		Model(models.Series{}).
-		Select(`EXTRACT(YEAR FROM started_at) AS started,
-			EXTRACT(YEAR FROM finished_at) AS finished, 
-			SUM(episodes) AS num`).
+		Select("EXTRACT(YEAR FROM viewed_at) AS viewed, SUM(episodes) AS num").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where("user_id = ?", userId).
-		Group("started, finished").
-		Order("started").
+		Group("viewed").
+		Order("viewed").
 		Scan(&stats)
 	return stats
 }
@@ -89,13 +96,15 @@ func (s *statsRepository) FindTotalTime(userId string) models.SeriesStat {
 	return stats
 }
 
-func (s *statsRepository) FindTimeCurrentWeek(userId string) models.SeriesStat {
+func (s *statsRepository) FindTimeCurrentMonth(userId string) models.SeriesStat {
 	var stats models.SeriesStat
 	s.db.
 		Model(models.Series{}).
 		Select("SUM(seasons.episodes * series.episode_length) AS total").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
-		Where("user_id = ? AND started_at >= NOW()::DATE - 7", userId).
+		Where(`user_id = ? 
+AND EXTRACT(YEAR FROM viewed_at) = EXTRACT(YEAR FROM NOW())
+AND EXTRACT(MONTH FROM viewed_at) = EXTRACT(MONTH FROM NOW())`, userId).
 		Scan(&stats)
 	return stats
 }
@@ -107,8 +116,7 @@ func (s *statsRepository) FindTimeCurrentYear(userId string) models.SeriesStat {
 		Select("SUM(seasons.episodes * series.episode_length) AS total").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where(`user_id = ? 
-				AND EXTRACT(year from started_at) = EXTRACT(year from now()) 
-				AND EXTRACT(year from finished_at) = EXTRACT(year from now())`, userId).
+				AND EXTRACT(year from viewed_at) = EXTRACT(year from now())`, userId).
 		Scan(&stats)
 	return stats
 }
