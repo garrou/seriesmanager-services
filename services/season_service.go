@@ -1,7 +1,11 @@
 package services
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
 	"seriesmanager-services/dto"
+	"seriesmanager-services/helpers"
 	"seriesmanager-services/models"
 	"seriesmanager-services/repositories"
 	"strconv"
@@ -13,6 +17,7 @@ type SeasonService interface {
 	GetInfosBySeasonBySeriesId(seriesId, number string) []models.SeasonInfos
 	GetDetailsSeasonsNbViewed(userId, seriesId string) []models.SeasonDetailsViewed
 	AddAllSeasonsBySeries(userId, seriesId string, seasons dto.SeasonsCreateAllDto) interface{}
+	GetToContinue(userId string) []dto.SeriesToContinueDto
 }
 
 type seasonService struct {
@@ -28,16 +33,12 @@ func NewSeasonService(seasonRepository repositories.SeasonRepository, seriesRepo
 }
 
 func (s *seasonService) AddSeason(season dto.SeasonCreateDto) interface{} {
-	if season.StartedAt.After(season.FinishedAt) {
-		return false
-	}
 	return s.seasonRepository.Save(models.Season{
-		Number:     season.Number,
-		Episodes:   season.Episodes,
-		Image:      season.Image,
-		StartedAt:  season.StartedAt,
-		FinishedAt: season.FinishedAt,
-		SeriesID:   season.SeriesId,
+		Number:   season.Number,
+		Episodes: season.Episodes,
+		Image:    season.Image,
+		ViewedAt: season.ViewedAt,
+		SeriesID: season.SeriesId,
 	})
 }
 
@@ -57,30 +58,44 @@ func (s *seasonService) AddAllSeasonsBySeries(userId, seriesId string, seasons d
 	exists := s.seriesRepository.ExistsByUserIdSeriesId(userId, seriesId)
 	id, err := strconv.Atoi(seriesId)
 
-	if !exists || seasons.Start.After(seasons.End) || err != nil {
+	if !exists || err != nil {
 		return false
 	}
-	days := int(seasons.End.Sub(seasons.Start).Hours() / 24)
-	nbSeasons := len(seasons.Seasons)
-	start := seasons.Start
 
 	for _, season := range seasons.Seasons {
-		daysToAdd := days / nbSeasons
-
-		if daysToAdd < 1 {
-			daysToAdd = 1
-		}
-		end := start.AddDate(0, 0, daysToAdd)
-
 		s.seasonRepository.Save(models.Season{
-			Number:     season.Number,
-			Episodes:   season.Episodes,
-			Image:      season.Image,
-			StartedAt:  start,
-			FinishedAt: end,
-			SeriesID:   id,
+			Number:   season.Number,
+			Episodes: season.Episodes,
+			Image:    season.Image,
+			ViewedAt: seasons.ViewedAt,
+			SeriesID: id,
 		})
-		start = end
 	}
 	return seasons
+}
+
+func (s *seasonService) GetToContinue(userId string) []dto.SeriesToContinueDto {
+	apiKey := os.Getenv("API_KEY")
+	series := s.seriesRepository.FindByUserId(userId)
+	var seasons dto.SearchSeasonsDto
+	var toContinue []dto.SeriesToContinueDto
+
+	for _, userSeries := range series {
+		userSeasons := s.seasonRepository.FindDistinctBySeriesId(strconv.Itoa(userSeries.ID))
+		body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/seasons?id=%d&key=%s", userSeries.Sid, apiKey))
+
+		if err := json.Unmarshal(body, &seasons); err != nil {
+			panic(err.Error())
+		}
+
+		diff := len(seasons.Seasons) - len(userSeasons)
+
+		if diff > 0 {
+			toContinue = append(toContinue, dto.SeriesToContinueDto{
+				Title:     userSeries.Title,
+				NbMissing: diff,
+			})
+		}
+	}
+	return toContinue
 }

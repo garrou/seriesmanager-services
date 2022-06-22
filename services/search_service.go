@@ -12,7 +12,7 @@ type SearchService interface {
 	Discover() dto.SearchedSeries
 	SearchSeriesByName(name string) dto.SearchedSeries
 	SearchSeasonsBySid(seriesId string) dto.SearchSeasonsDto
-	SearchEpisodesBySidBySeason(seriesId string, seasonNumber string) dto.SearchEpisodes
+	SearchEpisodesBySidBySeason(seriesId string, seasonNumber string) dto.SearchEpisodesDto
 	SearchImagesBySeriesName(name string) []string
 }
 
@@ -56,10 +56,10 @@ func (s *searchService) SearchSeasonsBySid(sid string) dto.SearchSeasonsDto {
 	return seasons
 }
 
-func (s *searchService) SearchEpisodesBySidBySeason(sid, seasonNumber string) dto.SearchEpisodes {
+func (s *searchService) SearchEpisodesBySidBySeason(sid, seasonNumber string) dto.SearchEpisodesDto {
 	apiKey := os.Getenv("API_KEY")
 	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/episodes?id=%s&season=%s&key=%s", sid, seasonNumber, apiKey))
-	var episodes dto.SearchEpisodes
+	var episodes dto.SearchEpisodesDto
 
 	if err := json.Unmarshal(body, &episodes); err != nil {
 		panic(err.Error())
@@ -75,7 +75,7 @@ func (s *searchService) SearchImagesBySeriesName(name string) []string {
 	if err := json.Unmarshal(body, &searchedSeries); err != nil {
 		panic(err.Error())
 	}
-	images := make([]dto.Pictures, len(searchedSeries.Series))
+	images := make([]dto.PicturesDto, len(searchedSeries.Series))
 	var urls []string
 
 	for i, series := range searchedSeries.Series {

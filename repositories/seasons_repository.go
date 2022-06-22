@@ -24,7 +24,7 @@ func (s *seasonRepository) FindDistinctBySeriesId(seriesId string) []models.Seas
 	var seasons []models.Season
 	s.db.
 		Distinct("ON (number) number, *").
-		Order("number, started_at").
+		Order("number, viewed_at").
 		Find(&seasons, "series_id = ?", seriesId)
 	return seasons
 }
@@ -38,10 +38,10 @@ func (s *seasonRepository) FindInfosBySeriesIdBySeason(seriesId, number string) 
 	var infos []models.SeasonInfos
 	s.db.
 		Model(&models.Season{}).
-		Select("seasons.started_at, seasons.finished_at, seasons.episodes * series.episode_length AS duration").
+		Select("seasons.viewed_at, seasons.episodes * series.episode_length AS duration").
 		Joins("JOIN series ON series.id = series_id").
 		Where("series_id = ? AND number = ?", seriesId, number).
-		Group("started_at, finished_at, episodes, episode_length").
+		Group("viewed_at, episodes, episode_length").
 		Scan(&infos)
 	return infos
 }
@@ -53,6 +53,7 @@ func (s *seasonRepository) FindDetailsSeasonsNbViewed(userId, seriesId string) [
 		Select("number, COUNT(*) AS total").
 		Joins("JOIN series ON seasons.series_id = series.id").
 		Where("user_id = ? AND seasons.series_id = ?", userId, seriesId).
+		Order("number").
 		Group("number").
 		Scan(&details)
 	return details

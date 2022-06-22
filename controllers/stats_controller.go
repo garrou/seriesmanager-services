@@ -15,8 +15,9 @@ type StatsController interface {
 	GetNbEpisodesByYears(ctx *gin.Context)
 	GetTotalSeries(ctx *gin.Context)
 	GetTotalTime(ctx *gin.Context)
-	GetTimeCurrentWeek(ctx *gin.Context)
+	GetTimeCurrentMonth(ctx *gin.Context)
 	GetAddedSeriesByYears(ctx *gin.Context)
+	GetNbSeasonsByMonths(ctx *gin.Context)
 }
 
 type statsController struct {
@@ -34,11 +35,11 @@ func (s *statsController) Routes(e *gin.Engine) {
 		routes.GET("/series/years", s.GetAddedSeriesByYears)
 		routes.GET("/series/count", s.GetTotalSeries)
 		routes.GET("/seasons/years", s.GetNbSeasonsByYears)
+		routes.GET("/seasons/months", s.GetNbSeasonsByMonths)
 		routes.GET("/seasons/time", s.GetTimeSeasonsByYears)
 		routes.GET("/episodes/years", s.GetNbEpisodesByYears)
 		routes.GET("/time", s.GetTotalTime)
-		routes.GET("/time/week", s.GetTimeCurrentWeek)
-
+		routes.GET("/time/month", s.GetTimeCurrentMonth)
 	}
 }
 func (s *statsController) GetNbSeasonsByYears(ctx *gin.Context) {
@@ -76,9 +77,9 @@ func (s *statsController) GetTotalTime(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, response)
 }
 
-func (s *statsController) GetTimeCurrentWeek(ctx *gin.Context) {
+func (s *statsController) GetTimeCurrentMonth(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
-	stats := s.statsService.GetCurrentTimeWeek(userId)
+	stats := s.statsService.GetTimeCurrentMonth(userId)
 	response := helpers.NewResponse("", stats)
 	ctx.JSON(http.StatusOK, response)
 }
@@ -86,6 +87,13 @@ func (s *statsController) GetTimeCurrentWeek(ctx *gin.Context) {
 func (s *statsController) GetAddedSeriesByYears(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	stats := s.statsService.GetAddedSeriesByYears(userId)
+	response := helpers.NewResponse("", stats)
+	ctx.JSON(http.StatusOK, response)
+}
+
+func (s *statsController) GetNbSeasonsByMonths(ctx *gin.Context) {
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	stats := s.statsService.GetNbSeasonsByMonths(userId)
 	response := helpers.NewResponse("", stats)
 	ctx.JSON(http.StatusOK, response)
 }

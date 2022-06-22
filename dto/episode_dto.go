@@ -1,7 +1,7 @@
 package dto
 
-// SearchEpisodes represents api episodes
-type SearchEpisodes struct {
+// SearchEpisodesDto represents api episodes
+type SearchEpisodesDto struct {
 	Episodes []struct {
 		Id          int    `json:"id"`
 		Title       string `json:"title"`
