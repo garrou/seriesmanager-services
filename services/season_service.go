@@ -1,7 +1,11 @@
 package services
 
 import (
+	"encoding/json"
+	"fmt"
+	"os"
 	"seriesmanager-services/dto"
+	"seriesmanager-services/helpers"
 	"seriesmanager-services/models"
 	"seriesmanager-services/repositories"
 	"strconv"
@@ -13,6 +17,7 @@ type SeasonService interface {
 	GetInfosBySeasonBySeriesId(seriesId, number string) []models.SeasonInfos
 	GetDetailsSeasonsNbViewed(userId, seriesId string) []models.SeasonDetailsViewed
 	AddAllSeasonsBySeries(userId, seriesId string, seasons dto.SeasonsCreateAllDto) interface{}
+	GetToContinue(userId string) []dto.SeriesToContinueDto
 }
 
 type seasonService struct {
@@ -67,4 +72,30 @@ func (s *seasonService) AddAllSeasonsBySeries(userId, seriesId string, seasons d
 		})
 	}
 	return seasons
+}
+
+func (s *seasonService) GetToContinue(userId string) []dto.SeriesToContinueDto {
+	apiKey := os.Getenv("API_KEY")
+	series := s.seriesRepository.FindByUserId(userId)
+	var seasons dto.SearchSeasonsDto
+	var toContinue []dto.SeriesToContinueDto
+
+	for _, userSeries := range series {
+		userSeasons := s.seasonRepository.FindDistinctBySeriesId(strconv.Itoa(userSeries.ID))
+		body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/seasons?id=%d&key=%s", userSeries.Sid, apiKey))
+
+		if err := json.Unmarshal(body, &seasons); err != nil {
+			panic(err.Error())
+		}
+
+		diff := len(seasons.Seasons) - len(userSeasons)
+
+		if diff > 0 {
+			toContinue = append(toContinue, dto.SeriesToContinueDto{
+				Title:     userSeries.Title,
+				NbMissing: diff,
+			})
+		}
+	}
+	return toContinue
 }

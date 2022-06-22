@@ -17,6 +17,7 @@ type SeasonController interface {
 	GetInfosBySeasonBySeriesId(ctx *gin.Context)
 	GetDetailsSeasonsNbViewed(ctx *gin.Context)
 	PostAllSeasonsSeries(ctx *gin.Context)
+	GetToContinue(ctx *gin.Context)
 }
 
 type seasonController struct {
@@ -36,6 +37,7 @@ func (s *seasonController) Routes(e *gin.Engine) {
 		routes.GET("/series/:id", s.GetDistinctBySeriesId)
 		routes.GET("/:number/series/:id/infos", s.GetInfosBySeasonBySeriesId)
 		routes.GET("/series/:id/viewed", s.GetDetailsSeasonsNbViewed)
+		routes.GET("/continue", s.GetToContinue)
 	}
 }
 
@@ -99,4 +101,12 @@ func (s *seasonController) PostAllSeasonsSeries(ctx *gin.Context) {
 		response = helpers.NewResponse("Erreur durant l'ajout des saisons", nil)
 		ctx.JSON(http.StatusBadRequest, response)
 	}
+}
+
+// GetToContinue get user's series with unwatched seasons
+func (s *seasonController) GetToContinue(ctx *gin.Context) {
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	series := s.seasonService.GetToContinue(userId)
+	response := helpers.NewResponse("", series)
+	ctx.JSON(http.StatusOK, response)
 }

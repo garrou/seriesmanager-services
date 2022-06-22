@@ -18,8 +18,8 @@ type SeriesPreviewDto struct {
 	Sid           int    `json:"sid"`
 }
 
-// PreviewSeries represents the result when get by id
-type PreviewSeries struct {
+// PreviewSeriesDto represents the result when get by id
+type PreviewSeriesDto struct {
 	Series struct {
 		Id     int    `json:"id"`
 		Title  string `json:"title"`
@@ -29,8 +29,8 @@ type PreviewSeries struct {
 	} `json:"show"`
 }
 
-// Details represent details api series
-type Details struct {
+// DetailsDto represent details api series
+type DetailsDto struct {
 	Series struct {
 		Id     int    `json:"id"`
 		Title  string `json:"title"`
@@ -91,8 +91,13 @@ type SearchedSeries struct {
 	} `json:"shows"`
 }
 
-type Pictures struct {
+type PicturesDto struct {
 	Pictures []struct {
 		Url string `json:"url"`
 	} `json:"pictures"`
+}
+
+type SeriesToContinueDto struct {
+	Title     string `json:"title"`
+	NbMissing int    `json:"nbMissing"`
 }
