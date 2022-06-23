@@ -4,9 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"seriesmanager-services/dto"
+	"seriesmanager-services/entities"
 	"seriesmanager-services/helpers"
 	"seriesmanager-services/middlewares"
-	"seriesmanager-services/models"
 	"seriesmanager-services/services"
 )
 
@@ -42,8 +42,8 @@ func (u *userController) Get(ctx *gin.Context) {
 	userId := u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	res := u.userService.Get(userId)
 
-	if user, ok := res.(models.User); ok {
-		response := helpers.NewResponse("", dto.UserProfileDto{
+	if user, ok := res.(entities.User); ok {
+		response := helpers.NewResponse("", dto.UserDto{
 			Username: user.Username,
 			Email:    user.Email,
 			JoinedAt: user.JoinedAt,
@@ -65,7 +65,7 @@ func (u *userController) UpdateBanner(ctx *gin.Context) {
 	userId := u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	res := u.userService.UpdateBanner(userId, body.Banner)
 
-	if _, ok := res.(models.User); ok {
+	if _, ok := res.(entities.User); ok {
 		response := helpers.NewResponse("Bannière modifiée", nil)
 		ctx.JSON(http.StatusOK, response)
 	} else {
@@ -86,7 +86,7 @@ func (u *userController) UpdateProfile(ctx *gin.Context) {
 	userDto.Id = u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	res := u.userService.UpdateProfile(userDto)
 
-	if _, ok := res.(models.User); ok {
+	if _, ok := res.(entities.User); ok {
 		response := helpers.NewResponse("Profil modifié", nil)
 		ctx.JSON(http.StatusOK, response)
 	} else {
@@ -107,7 +107,7 @@ func (u *userController) UpdatePassword(ctx *gin.Context) {
 	userDto.Id = u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	res := u.userService.UpdatePassword(userDto)
 
-	if _, ok := res.(models.User); ok {
+	if _, ok := res.(entities.User); ok {
 		response := helpers.NewResponse("Mot de passe modifié", nil)
 		ctx.JSON(http.StatusOK, response)
 	} else {

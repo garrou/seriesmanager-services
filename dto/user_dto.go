@@ -5,8 +5,8 @@ import (
 	"time"
 )
 
-// UserDto represents a user during login
-type UserDto struct {
+// UserLoginDto represents a user during login
+type UserLoginDto struct {
 	Email    string `json:"email" binding:"required" validate:"email,max:255"`
 	Password string `json:"password" binding:"required" validate:"min:8,max:50"`
 }
@@ -32,8 +32,8 @@ func (u *UserCreateDto) IsValid() bool {
 	return len(u.Password) >= 8 && u.Password == u.Confirm && len(u.Username) >= 3
 }
 
-// UserProfileDto represents a user profile
-type UserProfileDto struct {
+// UserDto represents a user profile
+type UserDto struct {
 	Username string    `json:"username"`
 	Email    string    `json:"email"`
 	JoinedAt time.Time `json:"joinedAt"`

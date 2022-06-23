@@ -2,17 +2,17 @@ package services
 
 import (
 	"seriesmanager-services/dto"
-	"seriesmanager-services/models"
+	"seriesmanager-services/entities"
 	"seriesmanager-services/repositories"
 	"time"
 )
 
 type SeriesService interface {
-	AddSeries(series dto.SeriesCreateDto) models.Series
+	AddSeries(series dto.SeriesCreateDto) dto.SeriesDto
 	GetAll(userId string) []dto.SeriesPreviewDto
 	GetByUserIdByName(userId, title string) []dto.SeriesPreviewDto
 	IsDuplicateSeries(series dto.SeriesCreateDto) bool
-	GetInfosBySeriesId(seriesId string) models.SeriesInfo
+	GetInfosBySeriesId(seriesId string) dto.SeriesInfoDto
 	DeleteByUserIdBySeriesId(userId string, seriesId int) bool
 }
 
@@ -26,8 +26,8 @@ func NewSeriesService(seriesRepository repositories.SeriesRepository) SeriesServ
 	}
 }
 
-func (s *seriesService) AddSeries(series dto.SeriesCreateDto) models.Series {
-	toCreate := models.Series{
+func (s *seriesService) AddSeries(series dto.SeriesCreateDto) dto.SeriesDto {
+	toCreate := entities.Series{
 		Sid:           series.Sid,
 		Title:         series.Title,
 		Poster:        series.Poster,
@@ -35,7 +35,16 @@ func (s *seriesService) AddSeries(series dto.SeriesCreateDto) models.Series {
 		AddedAt:       time.Now(),
 		UserID:        series.UserId,
 	}
-	return s.seriesRepository.Save(toCreate)
+	created := s.seriesRepository.Save(toCreate)
+
+	return dto.SeriesDto{
+		ID:            created.ID,
+		Title:         created.Title,
+		Poster:        created.Poster,
+		EpisodeLength: created.EpisodeLength,
+		Sid:           created.Sid,
+		AddedAt:       created.AddedAt,
+	}
 }
 
 func (s *seriesService) GetAll(userId string) []dto.SeriesPreviewDto {
@@ -74,7 +83,7 @@ func (s *seriesService) IsDuplicateSeries(series dto.SeriesCreateDto) bool {
 	return res.Error == nil
 }
 
-func (s *seriesService) GetInfosBySeriesId(seriesId string) models.SeriesInfo {
+func (s *seriesService) GetInfosBySeriesId(seriesId string) dto.SeriesInfoDto {
 	return s.seriesRepository.FindInfosBySeriesId(seriesId)
 }
 

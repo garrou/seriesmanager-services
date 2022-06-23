@@ -3,14 +3,14 @@ package services
 import (
 	"github.com/google/uuid"
 	"seriesmanager-services/dto"
+	"seriesmanager-services/entities"
 	"seriesmanager-services/helpers"
-	"seriesmanager-services/models"
 	"seriesmanager-services/repositories"
 	"time"
 )
 
 type AuthService interface {
-	Register(user dto.UserCreateDto) models.User
+	Register(user dto.UserCreateDto) dto.UserDto
 	Login(email, password string) interface{}
 	IsDuplicateEmail(email string) bool
 }
@@ -25,21 +25,28 @@ func NewAuthService(userRepository repositories.UserRepository) AuthService {
 	}
 }
 
-func (a *authService) Register(user dto.UserCreateDto) models.User {
-	toCreate := models.User{
+func (a *authService) Register(user dto.UserCreateDto) dto.UserDto {
+	toCreate := entities.User{
 		ID:       uuid.New().String(),
 		Username: user.Username,
 		Email:    user.Email,
 		Password: helpers.HashPassword(user.Password),
 		JoinedAt: time.Now(),
 	}
-	return a.userRepository.Save(toCreate)
+	created := a.userRepository.Save(toCreate)
+
+	return dto.UserDto{
+		Username: created.Username,
+		Email:    created.Email,
+		JoinedAt: created.JoinedAt,
+		Banner:   created.Banner,
+	}
 }
 
 func (a *authService) Login(email, password string) interface{} {
 	res := a.userRepository.FindByEmail(email)
 
-	if user, ok := res.(models.User); ok {
+	if user, ok := res.(entities.User); ok {
 		same := helpers.ComparePassword(user.Password, password)
 
 		if user.Email == email && same {

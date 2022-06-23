@@ -1,5 +1,17 @@
 package dto
 
+import "time"
+
+// SeriesDto represents a series
+type SeriesDto struct {
+	ID            int       `json:"id"`
+	Sid           int       `json:"sid"`
+	Title         string    `json:"title"`
+	Poster        string    `json:"poster"`
+	EpisodeLength int       `json:"length"`
+	AddedAt       time.Time `json:"addedAt"`
+}
+
 // SeriesCreateDto represents a series to create
 type SeriesCreateDto struct {
 	Sid           int    `json:"id" binding:"required"`
@@ -29,8 +41,8 @@ type PreviewSeriesDto struct {
 	} `json:"show"`
 }
 
-// DetailsDto represent details api series
-type DetailsDto struct {
+// SeriesDetailsDto represent details api series
+type SeriesDetailsDto struct {
 	Series struct {
 		Id     int    `json:"id"`
 		Title  string `json:"title"`
@@ -60,8 +72,8 @@ type DetailsDto struct {
 	}
 }
 
-// SearchedSeries represents the results of api search series by name
-type SearchedSeries struct {
+// SearchedSeriesDto represents the results of api search series by name
+type SearchedSeriesDto struct {
 	Series []struct {
 		Id     int    `json:"id"`
 		Title  string `json:"title"`
@@ -91,13 +103,17 @@ type SearchedSeries struct {
 	} `json:"shows"`
 }
 
-type PicturesDto struct {
-	Pictures []struct {
-		Url string `json:"url"`
-	} `json:"pictures"`
-}
-
+// SeriesToContinueDto represents series with unwatched seasons
 type SeriesToContinueDto struct {
 	Title     string `json:"title"`
 	NbMissing int    `json:"nbMissing"`
+}
+
+// SeriesInfoDto represents user series info
+type SeriesInfoDto struct {
+	Duration int       `json:"duration"`
+	Seasons  int       `json:"seasons"`
+	Episodes int       `json:"episodes"`
+	Begin    time.Time `json:"beginAt"`
+	End      time.Time `json:"endAt"`
 }

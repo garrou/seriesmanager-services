@@ -3,8 +3,8 @@ package controllers
 import (
 	"net/http"
 	"seriesmanager-services/dto"
+	"seriesmanager-services/entities"
 	"seriesmanager-services/helpers"
-	"seriesmanager-services/models"
 	"seriesmanager-services/services"
 
 	"github.com/gin-gonic/gin"
@@ -63,7 +63,7 @@ func (a *authController) Register(ctx *gin.Context) {
 
 // Login authenticate user
 func (a *authController) Login(ctx *gin.Context) {
-	var userDto dto.UserDto
+	var userDto dto.UserLoginDto
 	if errDto := ctx.ShouldBind(&userDto); errDto != nil {
 		response := helpers.NewResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
@@ -71,7 +71,7 @@ func (a *authController) Login(ctx *gin.Context) {
 	}
 	res := a.authService.Login(userDto.Email, userDto.Password)
 
-	if user, ok := res.(models.User); ok {
+	if user, ok := res.(entities.User); ok {
 		token := a.jwtHelper.GenerateToken(user.ID)
 		response := helpers.NewResponse("", token)
 		ctx.JSON(http.StatusOK, response)
