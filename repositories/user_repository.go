@@ -1,13 +1,12 @@
 package repositories
 
 import (
-	"seriesmanager-services/models"
-
 	"gorm.io/gorm"
+	"seriesmanager-services/entities"
 )
 
 type UserRepository interface {
-	Save(user models.User) models.User
+	Save(user entities.User) entities.User
 	FindByEmail(email string) interface{}
 	FindById(id string) interface{}
 	Exists(email string) *gorm.DB
@@ -23,13 +22,13 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	}
 }
 
-func (u *userRepository) Save(user models.User) models.User {
+func (u *userRepository) Save(user entities.User) entities.User {
 	u.db.Save(&user)
 	return user
 }
 
 func (u *userRepository) FindByEmail(email string) interface{} {
-	var user models.User
+	var user entities.User
 	res := u.db.Find(&user, "email = ?", email)
 
 	if res.Error == nil {
@@ -39,7 +38,7 @@ func (u *userRepository) FindByEmail(email string) interface{} {
 }
 
 func (u *userRepository) FindById(id string) interface{} {
-	var user models.User
+	var user entities.User
 	res := u.db.Find(&user, "id = ?", id)
 
 	if res.Error == nil {
@@ -49,5 +48,5 @@ func (u *userRepository) FindById(id string) interface{} {
 }
 
 func (u *userRepository) Exists(email string) *gorm.DB {
-	return u.db.Take(&models.User{}, "email = ?", email)
+	return u.db.Take(&entities.User{}, "email = ?", email)
 }

@@ -1,19 +1,19 @@
 package services
 
 import (
-	"seriesmanager-services/models"
+	"seriesmanager-services/dto"
 	"seriesmanager-services/repositories"
 )
 
 type StatsService interface {
-	GetNbSeasonsByMonths(userId string) []models.SeasonMonthStat
-	GetNbSeasonsByYears(userId string) []models.SeasonStat
-	GetTimeSeasonsByYears(userId string) []models.SeasonStat
-	GetEpisodesByYears(userId string) []models.SeasonStat
+	GetNbSeasonsByMonths(userId string) []dto.StatDto
+	GetNbSeasonsByYears(userId string) []dto.StatDto
+	GetTimeSeasonsByYears(userId string) []dto.StatDto
+	GetEpisodesByYears(userId string) []dto.StatDto
 	GetTotalSeries(userId string) int64
-	GetTotalTime(userId string) models.SeriesStat
-	GetTimeCurrentMonth(userId string) models.SeriesStat
-	GetAddedSeriesByYears(userId string) []models.SeriesAddedYears
+	GetTotalTime(userId string) dto.SeriesStatDto
+	GetTimeCurrentMonth(userId string) dto.SeriesStatDto
+	GetAddedSeriesByYears(userId string) []dto.StatDto
 }
 
 type statsService struct {
@@ -24,15 +24,15 @@ func NewStatsService(statsRepository repositories.StatsRepository) StatsService 
 	return &statsService{statsRepository: statsRepository}
 }
 
-func (s *statsService) GetNbSeasonsByYears(userId string) []models.SeasonStat {
+func (s *statsService) GetNbSeasonsByYears(userId string) []dto.StatDto {
 	return s.statsRepository.FindNbSeasonsByYears(userId)
 }
 
-func (s *statsService) GetTimeSeasonsByYears(userId string) []models.SeasonStat {
+func (s *statsService) GetTimeSeasonsByYears(userId string) []dto.StatDto {
 	return s.statsRepository.FindTimeSeasonsByYears(userId)
 }
 
-func (s *statsService) GetEpisodesByYears(userId string) []models.SeasonStat {
+func (s *statsService) GetEpisodesByYears(userId string) []dto.StatDto {
 	return s.statsRepository.FindEpisodesByYears(userId)
 }
 
@@ -40,18 +40,18 @@ func (s *statsService) GetTotalSeries(userId string) int64 {
 	return s.statsRepository.FindTotalSeries(userId)
 }
 
-func (s *statsService) GetTotalTime(userId string) models.SeriesStat {
+func (s *statsService) GetTotalTime(userId string) dto.SeriesStatDto {
 	return s.statsRepository.FindTotalTime(userId)
 }
 
-func (s *statsService) GetTimeCurrentMonth(userId string) models.SeriesStat {
+func (s *statsService) GetTimeCurrentMonth(userId string) dto.SeriesStatDto {
 	return s.statsRepository.FindTimeCurrentMonth(userId)
 }
 
-func (s *statsService) GetAddedSeriesByYears(userId string) []models.SeriesAddedYears {
+func (s *statsService) GetAddedSeriesByYears(userId string) []dto.StatDto {
 	return s.statsRepository.FindAddedSeriesByYears(userId)
 }
 
-func (s *statsService) GetNbSeasonsByMonths(userId string) []models.SeasonMonthStat {
+func (s *statsService) GetNbSeasonsByMonths(userId string) []dto.StatDto {
 	return s.statsRepository.FindNbSeasonsByMonths(userId)
 }

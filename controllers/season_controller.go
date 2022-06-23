@@ -4,9 +4,9 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"seriesmanager-services/dto"
+	"seriesmanager-services/entities"
 	"seriesmanager-services/helpers"
 	"seriesmanager-services/middlewares"
-	"seriesmanager-services/models"
 	"seriesmanager-services/services"
 )
 
@@ -51,7 +51,7 @@ func (s *seasonController) PostSeason(ctx *gin.Context) {
 	}
 	res := s.seasonService.AddSeason(seasonDto)
 
-	if season, ok := res.(models.Season); ok {
+	if season, ok := res.(entities.Season); ok {
 		response := helpers.NewResponse("Saison ajoutée", season)
 		ctx.JSON(http.StatusCreated, response)
 	} else {

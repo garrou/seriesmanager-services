@@ -2,8 +2,8 @@ package services
 
 import (
 	"seriesmanager-services/dto"
+	"seriesmanager-services/entities"
 	"seriesmanager-services/helpers"
-	"seriesmanager-services/models"
 	"seriesmanager-services/repositories"
 )
 
@@ -29,7 +29,7 @@ func (u *userService) Get(id string) interface{} {
 func (u *userService) UpdateBanner(id, banner string) interface{} {
 	res := u.userRepository.FindById(id)
 
-	if user, ok := res.(models.User); ok {
+	if user, ok := res.(entities.User); ok {
 		user.Banner = banner
 		return u.userRepository.Save(user)
 	}
@@ -39,7 +39,7 @@ func (u *userService) UpdateBanner(id, banner string) interface{} {
 func (u *userService) UpdateProfile(toUpdate dto.UserUpdateProfileDto) interface{} {
 	res := u.userRepository.FindById(toUpdate.Id)
 
-	if user, ok := res.(models.User); ok {
+	if user, ok := res.(entities.User); ok {
 		user.Username = toUpdate.Username
 		user.Email = toUpdate.Email
 		return u.userRepository.Save(user)
@@ -50,7 +50,7 @@ func (u *userService) UpdateProfile(toUpdate dto.UserUpdateProfileDto) interface
 func (u *userService) UpdatePassword(toUpdate dto.UserUpdatePasswordDto) interface{} {
 	res := u.userRepository.FindById(toUpdate.Id)
 
-	if user, ok := res.(models.User); ok {
+	if user, ok := res.(entities.User); ok {
 		same := helpers.ComparePassword(user.Password, toUpdate.CurrentPassword)
 
 		if same && toUpdate.Password == toUpdate.Confirm {

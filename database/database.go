@@ -2,12 +2,11 @@ package database
 
 import (
 	"fmt"
-	"os"
-	"seriesmanager-services/models"
-
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"os"
+	"seriesmanager-services/entities"
 )
 
 func Open() *gorm.DB {
@@ -29,7 +28,7 @@ func Open() *gorm.DB {
 		panic(errDb.Error())
 	}
 
-	if errMigrate := db.AutoMigrate(&models.User{}, &models.Series{}, &models.Season{}); errMigrate != nil {
+	if errMigrate := db.AutoMigrate(&entities.User{}, &entities.Series{}, &entities.Season{}); errMigrate != nil {
 		panic(errMigrate)
 	}
 	return db

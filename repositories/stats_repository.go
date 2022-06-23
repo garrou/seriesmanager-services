@@ -2,19 +2,20 @@ package repositories
 
 import (
 	"gorm.io/gorm"
-	"seriesmanager-services/models"
+	"seriesmanager-services/dto"
+	"seriesmanager-services/entities"
 )
 
 type StatsRepository interface {
-	FindNbSeasonsByYears(userId string) []models.SeasonStat
-	FindNbSeasonsByMonths(userId string) []models.SeasonMonthStat
-	FindTimeSeasonsByYears(userId string) []models.SeasonStat
-	FindEpisodesByYears(userId string) []models.SeasonStat
+	FindNbSeasonsByYears(userId string) []dto.StatDto
+	FindNbSeasonsByMonths(userId string) []dto.StatDto
+	FindTimeSeasonsByYears(userId string) []dto.StatDto
+	FindEpisodesByYears(userId string) []dto.StatDto
 	FindTotalSeries(userId string) int64
-	FindTotalTime(userId string) models.SeriesStat
-	FindTimeCurrentMonth(userId string) models.SeriesStat
-	FindTimeCurrentYear(userId string) models.SeriesStat
-	FindAddedSeriesByYears(userId string) []models.SeriesAddedYears
+	FindTotalTime(userId string) dto.SeriesStatDto
+	FindTimeCurrentMonth(userId string) dto.SeriesStatDto
+	FindTimeCurrentYear(userId string) dto.SeriesStatDto
+	FindAddedSeriesByYears(userId string) []dto.StatDto
 }
 
 type statsRepository struct {
@@ -25,53 +26,53 @@ func NewStatsRepository(db *gorm.DB) StatsRepository {
 	return &statsRepository{db: db}
 }
 
-func (s *statsRepository) FindNbSeasonsByYears(userId string) []models.SeasonStat {
-	var stats []models.SeasonStat
+func (s *statsRepository) FindNbSeasonsByYears(userId string) []dto.StatDto {
+	var stats []dto.StatDto
 	s.db.
-		Model(models.Series{}).
-		Select("EXTRACT(YEAR FROM viewed_at) AS viewed, COUNT(*) AS num").
+		Model(entities.Series{}).
+		Select("EXTRACT(YEAR FROM viewed_at) AS label, COUNT(*) AS value").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where("user_id = ?", userId).
-		Group("viewed").
-		Order("viewed").
+		Group("label").
+		Order("label").
 		Scan(&stats)
 	return stats
 }
 
-func (s *statsRepository) FindNbSeasonsByMonths(userId string) []models.SeasonMonthStat {
-	var stats []models.SeasonMonthStat
+func (s *statsRepository) FindNbSeasonsByMonths(userId string) []dto.StatDto {
+	var stats []dto.StatDto
 	s.db.
-		Model(models.Series{}).
-		Select("TO_CHAR(viewed_at, 'Month') AS month, COUNT(*) AS num").
+		Model(entities.Series{}).
+		Select("TO_CHAR(viewed_at, 'Month') AS label, COUNT(*) AS value").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where("user_id = ?", userId).
-		Group("month").
+		Group("label").
 		Scan(&stats)
 	return stats
 }
 
-func (s *statsRepository) FindTimeSeasonsByYears(userId string) []models.SeasonStat {
-	var stats []models.SeasonStat
+func (s *statsRepository) FindTimeSeasonsByYears(userId string) []dto.StatDto {
+	var stats []dto.StatDto
 	s.db.
-		Model(models.Series{}).
-		Select("EXTRACT(YEAR FROM viewed_at) AS viewed, SUM(episode_length * episodes) AS num").
+		Model(entities.Series{}).
+		Select("EXTRACT(YEAR FROM viewed_at) AS label, SUM(episode_length * episodes) AS value").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where("user_id = ?", userId).
-		Group("viewed").
-		Order("viewed").
+		Group("label").
+		Order("label").
 		Scan(&stats)
 	return stats
 }
 
-func (s *statsRepository) FindEpisodesByYears(userId string) []models.SeasonStat {
-	var stats []models.SeasonStat
+func (s *statsRepository) FindEpisodesByYears(userId string) []dto.StatDto {
+	var stats []dto.StatDto
 	s.db.
-		Model(models.Series{}).
-		Select("EXTRACT(YEAR FROM viewed_at) AS viewed, SUM(episodes) AS num").
+		Model(entities.Series{}).
+		Select("EXTRACT(YEAR FROM viewed_at) AS label, SUM(episodes) AS value").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where("user_id = ?", userId).
-		Group("viewed").
-		Order("viewed").
+		Group("label").
+		Order("label").
 		Scan(&stats)
 	return stats
 }
@@ -79,16 +80,16 @@ func (s *statsRepository) FindEpisodesByYears(userId string) []models.SeasonStat
 func (s *statsRepository) FindTotalSeries(userId string) int64 {
 	var total int64
 	s.db.
-		Model(models.Series{}).
+		Model(entities.Series{}).
 		Count(&total).
 		Where("user_id = ?", userId)
 	return total
 }
 
-func (s *statsRepository) FindTotalTime(userId string) models.SeriesStat {
-	var stats models.SeriesStat
+func (s *statsRepository) FindTotalTime(userId string) dto.SeriesStatDto {
+	var stats dto.SeriesStatDto
 	s.db.
-		Model(models.Series{}).
+		Model(entities.Series{}).
 		Select("SUM(seasons.episodes * series.episode_length) AS total").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where("user_id = ?", userId).
@@ -96,10 +97,10 @@ func (s *statsRepository) FindTotalTime(userId string) models.SeriesStat {
 	return stats
 }
 
-func (s *statsRepository) FindTimeCurrentMonth(userId string) models.SeriesStat {
-	var stats models.SeriesStat
+func (s *statsRepository) FindTimeCurrentMonth(userId string) dto.SeriesStatDto {
+	var stats dto.SeriesStatDto
 	s.db.
-		Model(models.Series{}).
+		Model(entities.Series{}).
 		Select("SUM(seasons.episodes * series.episode_length) AS total").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where(`user_id = ? 
@@ -109,10 +110,10 @@ AND EXTRACT(MONTH FROM viewed_at) = EXTRACT(MONTH FROM NOW())`, userId).
 	return stats
 }
 
-func (s *statsRepository) FindTimeCurrentYear(userId string) models.SeriesStat {
-	var stats models.SeriesStat
+func (s *statsRepository) FindTimeCurrentYear(userId string) dto.SeriesStatDto {
+	var stats dto.SeriesStatDto
 	s.db.
-		Model(models.Series{}).
+		Model(entities.Series{}).
 		Select("SUM(seasons.episodes * series.episode_length) AS total").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where(`user_id = ? 
@@ -121,13 +122,13 @@ func (s *statsRepository) FindTimeCurrentYear(userId string) models.SeriesStat {
 	return stats
 }
 
-func (s *statsRepository) FindAddedSeriesByYears(userId string) []models.SeriesAddedYears {
-	var stats []models.SeriesAddedYears
+func (s *statsRepository) FindAddedSeriesByYears(userId string) []dto.StatDto {
+	var stats []dto.StatDto
 	s.db.
-		Model(models.Series{}).
-		Select("EXTRACT(YEAR FROM added_at) AS added, COUNT(*) AS total").
+		Model(entities.Series{}).
+		Select("EXTRACT(YEAR FROM added_at) AS label, COUNT(*) AS value").
 		Where("user_id = ?", userId).
-		Group("added").
+		Group("label").
 		Scan(&stats)
 	return stats
 }

@@ -5,17 +5,17 @@ import (
 	"fmt"
 	"os"
 	"seriesmanager-services/dto"
+	"seriesmanager-services/entities"
 	"seriesmanager-services/helpers"
-	"seriesmanager-services/models"
 	"seriesmanager-services/repositories"
 	"strconv"
 )
 
 type SeasonService interface {
 	AddSeason(season dto.SeasonCreateDto) interface{}
-	GetDistinctBySeriesId(seriesId string) []models.Season
-	GetInfosBySeasonBySeriesId(seriesId, number string) []models.SeasonInfos
-	GetDetailsSeasonsNbViewed(userId, seriesId string) []models.SeasonDetailsViewed
+	GetDistinctBySeriesId(seriesId string) []dto.SeasonDto
+	GetInfosBySeasonBySeriesId(seriesId, number string) []dto.SeasonInfosDto
+	GetDetailsSeasonsNbViewed(userId, seriesId string) []dto.StatDto
 	AddAllSeasonsBySeries(userId, seriesId string, seasons dto.SeasonsCreateAllDto) interface{}
 	GetToContinue(userId string) []dto.SeriesToContinueDto
 }
@@ -33,7 +33,7 @@ func NewSeasonService(seasonRepository repositories.SeasonRepository, seriesRepo
 }
 
 func (s *seasonService) AddSeason(season dto.SeasonCreateDto) interface{} {
-	return s.seasonRepository.Save(models.Season{
+	return s.seasonRepository.Save(entities.Season{
 		Number:   season.Number,
 		Episodes: season.Episodes,
 		Image:    season.Image,
@@ -42,15 +42,28 @@ func (s *seasonService) AddSeason(season dto.SeasonCreateDto) interface{} {
 	})
 }
 
-func (s *seasonService) GetDistinctBySeriesId(seriesId string) []models.Season {
-	return s.seasonRepository.FindDistinctBySeriesId(seriesId)
+func (s *seasonService) GetDistinctBySeriesId(seriesId string) []dto.SeasonDto {
+	var seasonsDto []dto.SeasonDto
+	seasons := s.seasonRepository.FindDistinctBySeriesId(seriesId)
+
+	for _, season := range seasons {
+		seasonsDto = append(seasonsDto, dto.SeasonDto{
+			ID:       season.ID,
+			SeriesID: season.SeriesID,
+			ViewedAt: season.ViewedAt,
+			Episodes: season.Episodes,
+			Image:    season.Image,
+			Number:   season.Number,
+		})
+	}
+	return seasonsDto
 }
 
-func (s *seasonService) GetInfosBySeasonBySeriesId(seriesId, number string) []models.SeasonInfos {
+func (s *seasonService) GetInfosBySeasonBySeriesId(seriesId, number string) []dto.SeasonInfosDto {
 	return s.seasonRepository.FindInfosBySeriesIdBySeason(seriesId, number)
 }
 
-func (s *seasonService) GetDetailsSeasonsNbViewed(userId, seriesId string) []models.SeasonDetailsViewed {
+func (s *seasonService) GetDetailsSeasonsNbViewed(userId, seriesId string) []dto.StatDto {
 	return s.seasonRepository.FindDetailsSeasonsNbViewed(userId, seriesId)
 }
 
@@ -63,7 +76,7 @@ func (s *seasonService) AddAllSeasonsBySeries(userId, seriesId string, seasons d
 	}
 
 	for _, season := range seasons.Seasons {
-		s.seasonRepository.Save(models.Season{
+		s.seasonRepository.Save(entities.Season{
 			Number:   season.Number,
 			Episodes: season.Episodes,
 			Image:    season.Image,

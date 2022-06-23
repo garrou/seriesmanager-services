@@ -6,11 +6,12 @@ import (
 	"os"
 	"seriesmanager-services/dto"
 	"seriesmanager-services/helpers"
+	"seriesmanager-services/models"
 )
 
 type SearchService interface {
-	Discover() dto.SearchedSeries
-	SearchSeriesByName(name string) dto.SearchedSeries
+	Discover() dto.SearchedSeriesDto
+	SearchSeriesByName(name string) dto.SearchedSeriesDto
 	SearchSeasonsBySid(seriesId string) dto.SearchSeasonsDto
 	SearchEpisodesBySidBySeason(seriesId string, seasonNumber string) dto.SearchEpisodesDto
 	SearchImagesBySeriesName(name string) []string
@@ -23,10 +24,10 @@ func NewSearchService() SearchService {
 	return &searchService{}
 }
 
-func (s *searchService) Discover() dto.SearchedSeries {
+func (s *searchService) Discover() dto.SearchedSeriesDto {
 	apiKey := os.Getenv("API_KEY")
 	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/discover?limit=%d&key=%s", 50, apiKey))
-	var series dto.SearchedSeries
+	var series dto.SearchedSeriesDto
 
 	if err := json.Unmarshal(body, &series); err != nil {
 		panic(err.Error())
@@ -34,10 +35,10 @@ func (s *searchService) Discover() dto.SearchedSeries {
 	return series
 }
 
-func (s *searchService) SearchSeriesByName(name string) dto.SearchedSeries {
+func (s *searchService) SearchSeriesByName(name string) dto.SearchedSeriesDto {
 	apiKey := os.Getenv("API_KEY")
 	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/search?title=%s&key=%s", name, apiKey))
-	var series dto.SearchedSeries
+	var series dto.SearchedSeriesDto
 
 	if err := json.Unmarshal(body, &series); err != nil {
 		panic(err.Error())
@@ -68,14 +69,14 @@ func (s *searchService) SearchEpisodesBySidBySeason(sid, seasonNumber string) dt
 }
 
 func (s *searchService) SearchImagesBySeriesName(name string) []string {
-	var searchedSeries dto.SearchedSeries
+	var searchedSeries dto.SearchedSeriesDto
 	apiKey := os.Getenv("API_KEY")
 	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/search?title=%s&key=%s", name, apiKey))
 
 	if err := json.Unmarshal(body, &searchedSeries); err != nil {
 		panic(err.Error())
 	}
-	images := make([]dto.PicturesDto, len(searchedSeries.Series))
+	images := make([]models.Pictures, len(searchedSeries.Series))
 	var urls []string
 
 	for i, series := range searchedSeries.Series {
