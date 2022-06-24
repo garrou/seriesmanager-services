@@ -73,6 +73,7 @@ func (s *seriesService) GetByUserIdByName(userId, title string) []dto.SeriesPrev
 			Title:         s.Title,
 			Poster:        s.Poster,
 			EpisodeLength: s.EpisodeLength,
+			Sid:           s.Sid,
 		})
 	}
 	return series

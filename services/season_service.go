@@ -105,8 +105,12 @@ func (s *seasonService) GetToContinue(userId string) []dto.SeriesToContinueDto {
 
 		if diff > 0 {
 			toContinue = append(toContinue, dto.SeriesToContinueDto{
-				Title:     userSeries.Title,
-				NbMissing: diff,
+				Id:            userSeries.ID,
+				Title:         userSeries.Title,
+				Poster:        userSeries.Poster,
+				EpisodeLength: userSeries.EpisodeLength,
+				Sid:           userSeries.Sid,
+				NbMissing:     diff,
 			})
 		}
 	}
