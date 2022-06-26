@@ -81,8 +81,8 @@ func (s *statsRepository) FindTotalSeries(userId string) int64 {
 	var total int64
 	s.db.
 		Model(entities.Series{}).
-		Count(&total).
-		Where("user_id = ?", userId)
+		Where("user_id = ?", userId).
+		Count(&total)
 	return total
 }
 
