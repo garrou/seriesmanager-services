@@ -8,16 +8,17 @@ import (
 	"seriesmanager-services/entities"
 	"seriesmanager-services/helpers"
 	"seriesmanager-services/repositories"
-	"strconv"
 )
 
 type SeasonService interface {
-	AddSeason(season dto.SeasonCreateDto) interface{}
-	GetDistinctBySeriesId(seriesId string) []dto.SeasonDto
-	GetInfosBySeasonBySeriesId(seriesId, number string) []dto.SeasonInfosDto
-	GetDetailsSeasonsNbViewed(userId, seriesId string) []dto.StatDto
-	AddAllSeasonsBySeries(userId, seriesId string, seasons dto.SeasonsCreateAllDto) interface{}
+	AddSeason(userId string, season dto.SeasonCreateDto) interface{}
+	GetDistinctBySeriesId(userId string, seriesId int) []dto.SeasonDto
+	GetInfosBySeasonBySeriesId(userId string, seriesId, number int) []dto.SeasonInfosDto
+	GetDetailsSeasonsNbViewed(userId string, seriesId int) []dto.StatDto
+	AddAllSeasonsBySeries(userId string, seriesId int, seasons dto.SeasonsCreateAllDto) interface{}
 	GetToContinue(userId string) []dto.SeriesToContinueDto
+	UpdateSeason(userId string, updateDto dto.SeasonUpdateDto) interface{}
+	DeleteSeason(userId string, seasonId int) bool
 }
 
 type seasonService struct {
@@ -32,7 +33,12 @@ func NewSeasonService(seasonRepository repositories.SeasonRepository, seriesRepo
 	}
 }
 
-func (s *seasonService) AddSeason(season dto.SeasonCreateDto) interface{} {
+func (s *seasonService) AddSeason(userId string, season dto.SeasonCreateDto) interface{} {
+	exists := s.seriesRepository.ExistsByUserIdSeriesId(userId, season.SeriesId)
+
+	if !exists {
+		return nil
+	}
 	return s.seasonRepository.Save(entities.Season{
 		Number:   season.Number,
 		Episodes: season.Episodes,
@@ -42,46 +48,36 @@ func (s *seasonService) AddSeason(season dto.SeasonCreateDto) interface{} {
 	})
 }
 
-func (s *seasonService) GetDistinctBySeriesId(seriesId string) []dto.SeasonDto {
-	var seasonsDto []dto.SeasonDto
-	seasons := s.seasonRepository.FindDistinctBySeriesId(seriesId)
+func (s *seasonService) GetDistinctBySeriesId(userId string, seriesId int) []dto.SeasonDto {
+	exists := s.seriesRepository.ExistsByUserIdSeriesId(userId, seriesId)
 
-	for _, season := range seasons {
-		seasonsDto = append(seasonsDto, dto.SeasonDto{
-			ID:       season.ID,
-			SeriesID: season.SeriesID,
-			ViewedAt: season.ViewedAt,
-			Episodes: season.Episodes,
-			Image:    season.Image,
-			Number:   season.Number,
-		})
+	if !exists {
+		return nil
 	}
-	return seasonsDto
+	return s.seasonRepository.FindDistinctBySeriesId(seriesId)
 }
 
-func (s *seasonService) GetInfosBySeasonBySeriesId(seriesId, number string) []dto.SeasonInfosDto {
-	return s.seasonRepository.FindInfosBySeriesIdBySeason(seriesId, number)
+func (s *seasonService) GetInfosBySeasonBySeriesId(userId string, seriesId, number int) []dto.SeasonInfosDto {
+	return s.seasonRepository.FindInfosBySeriesIdBySeason(userId, seriesId, number)
 }
 
-func (s *seasonService) GetDetailsSeasonsNbViewed(userId, seriesId string) []dto.StatDto {
+func (s *seasonService) GetDetailsSeasonsNbViewed(userId string, seriesId int) []dto.StatDto {
 	return s.seasonRepository.FindDetailsSeasonsNbViewed(userId, seriesId)
 }
 
-func (s *seasonService) AddAllSeasonsBySeries(userId, seriesId string, seasons dto.SeasonsCreateAllDto) interface{} {
+func (s *seasonService) AddAllSeasonsBySeries(userId string, seriesId int, seasons dto.SeasonsCreateAllDto) interface{} {
 	exists := s.seriesRepository.ExistsByUserIdSeriesId(userId, seriesId)
-	id, err := strconv.Atoi(seriesId)
 
-	if !exists || err != nil {
-		return false
+	if !exists {
+		return nil
 	}
-
 	for _, season := range seasons.Seasons {
 		s.seasonRepository.Save(entities.Season{
 			Number:   season.Number,
 			Episodes: season.Episodes,
 			Image:    season.Image,
 			ViewedAt: seasons.ViewedAt,
-			SeriesID: id,
+			SeriesID: seriesId,
 		})
 	}
 	return seasons
@@ -94,7 +90,7 @@ func (s *seasonService) GetToContinue(userId string) []dto.SeriesToContinueDto {
 	var toContinue []dto.SeriesToContinueDto
 
 	for _, userSeries := range series {
-		userSeasons := s.seasonRepository.FindDistinctBySeriesId(strconv.Itoa(userSeries.ID))
+		userSeasons := s.seasonRepository.FindDistinctBySeriesId(userSeries.ID)
 		body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/seasons?id=%d&key=%s", userSeries.Sid, apiKey))
 
 		if err := json.Unmarshal(body, &seasons); err != nil {
@@ -115,4 +111,23 @@ func (s *seasonService) GetToContinue(userId string) []dto.SeriesToContinueDto {
 		}
 	}
 	return toContinue
+}
+
+func (s *seasonService) UpdateSeason(userId string, updateDto dto.SeasonUpdateDto) interface{} {
+	res := s.seasonRepository.FindById(userId, updateDto.Id)
+
+	if season, ok := res.(entities.Season); ok {
+		season.ViewedAt = updateDto.ViewedAt
+		return s.seasonRepository.Save(season)
+	}
+	return nil
+}
+
+func (s *seasonService) DeleteSeason(userId string, seasonId int) bool {
+	res := s.seasonRepository.FindById(userId, seasonId)
+
+	if _, ok := res.(entities.Season); ok {
+		return s.seasonRepository.DeleteById(seasonId)
+	}
+	return false
 }

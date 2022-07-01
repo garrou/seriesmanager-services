@@ -12,7 +12,7 @@ import (
 
 type SeriesController interface {
 	Routes(e *gin.Engine)
-	PostSeries(ctx *gin.Context)
+	Post(ctx *gin.Context)
 	GetAll(ctx *gin.Context)
 	GetByName(ctx *gin.Context)
 	GetInfosById(ctx *gin.Context)
@@ -31,7 +31,7 @@ func NewSeriesController(seriesService services.SeriesService, jwtHelper helpers
 func (s *seriesController) Routes(e *gin.Engine) {
 	routes := e.Group("/api/series", middlewares.AuthorizeJwt(s.jwtHelper))
 	{
-		routes.POST("/", s.PostSeries)
+		routes.POST("/", s.Post)
 		routes.GET("/", s.GetAll)
 		routes.GET("/names", s.GetByName)
 		routes.GET("/names/:name", s.GetByName)
@@ -40,9 +40,10 @@ func (s *seriesController) Routes(e *gin.Engine) {
 	}
 }
 
-// PostSeries adds a series to the authenticated user account
-func (s *seriesController) PostSeries(ctx *gin.Context) {
+// Post adds a series to the authenticated user account
+func (s *seriesController) Post(ctx *gin.Context) {
 	var seriesDto dto.SeriesCreateDto
+
 	if errDto := ctx.ShouldBind(&seriesDto); errDto != nil {
 		response := helpers.NewResponse("Informations invalides", nil)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
@@ -79,12 +80,20 @@ func (s *seriesController) GetByName(ctx *gin.Context) {
 
 // GetInfosById returns series by id
 func (s *seriesController) GetInfosById(ctx *gin.Context) {
-	infos := s.seriesService.GetInfosBySeriesId(ctx.Param("id"))
+	id, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		response := helpers.NewResponse("Impossible de récupérer les informations", nil)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		return
+	}
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	infos := s.seriesService.GetInfosBySeriesId(userId, id)
 	response := helpers.NewResponse("", infos)
 	ctx.JSON(http.StatusOK, response)
 }
 
-// Delete deletes series with userId and sid
+// Delete deletes series with userId and id
 func (s *seriesController) Delete(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	seriesId, err := strconv.Atoi(ctx.Param("id"))
@@ -96,7 +105,7 @@ func (s *seriesController) Delete(ctx *gin.Context) {
 	isDeleted := s.seriesService.DeleteByUserIdBySeriesId(userId, seriesId)
 
 	if isDeleted {
-		response := helpers.NewResponse("", nil)
+		response := helpers.NewResponse("Série supprimée", nil)
 		ctx.JSON(http.StatusNoContent, response)
 	} else {
 		response := helpers.NewResponse("Une erreur est survenue durant la suppression de la série", nil)
