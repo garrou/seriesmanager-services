@@ -12,8 +12,9 @@ type SeriesService interface {
 	GetAll(userId string) []dto.SeriesPreviewDto
 	GetByUserIdByName(userId, title string) []dto.SeriesPreviewDto
 	IsDuplicateSeries(series dto.SeriesCreateDto) bool
-	GetInfosBySeriesId(seriesId string) dto.SeriesInfoDto
+	GetInfosBySeriesId(userId string, seriesId int) dto.SeriesInfoDto
 	DeleteByUserIdBySeriesId(userId string, seriesId int) bool
+	UpdateWatching(userId string, seriesId int) interface{}
 }
 
 type seriesService struct {
@@ -73,6 +74,7 @@ func (s *seriesService) GetByUserIdByName(userId, title string) []dto.SeriesPrev
 			Title:         s.Title,
 			Poster:        s.Poster,
 			EpisodeLength: s.EpisodeLength,
+			Sid:           s.Sid,
 		})
 	}
 	return series
@@ -83,10 +85,20 @@ func (s *seriesService) IsDuplicateSeries(series dto.SeriesCreateDto) bool {
 	return res.Error == nil
 }
 
-func (s *seriesService) GetInfosBySeriesId(seriesId string) dto.SeriesInfoDto {
-	return s.seriesRepository.FindInfosBySeriesId(seriesId)
+func (s *seriesService) GetInfosBySeriesId(userId string, seriesId int) dto.SeriesInfoDto {
+	return s.seriesRepository.FindInfosBySeriesId(userId, seriesId)
 }
 
 func (s *seriesService) DeleteByUserIdBySeriesId(userId string, seriesId int) bool {
 	return s.seriesRepository.DeleteByUserBySeriesId(userId, seriesId)
+}
+
+func (s *seriesService) UpdateWatching(userId string, seriesId int) interface{} {
+	res := s.seriesRepository.FindByUserIdSeriesId(userId, seriesId)
+
+	if series, ok := res.(entities.Series); ok {
+		series.IsWatching = !series.IsWatching
+		return s.seriesRepository.Save(series)
+	}
+	return nil
 }

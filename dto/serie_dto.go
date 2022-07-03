@@ -105,15 +105,21 @@ type SearchedSeriesDto struct {
 
 // SeriesToContinueDto represents series with unwatched seasons
 type SeriesToContinueDto struct {
-	Title     string `json:"title"`
-	NbMissing int    `json:"nbMissing"`
+	Id            int    `json:"id"`
+	Title         string `json:"title"`
+	Poster        string `json:"poster"`
+	EpisodeLength int    `json:"length"`
+	Sid           int    `json:"sid"`
+	NbMissing     int    `json:"nbMissing"`
 }
 
 // SeriesInfoDto represents user series info
 type SeriesInfoDto struct {
+	Id       int       `json:"id"`
 	Duration int       `json:"duration"`
 	Seasons  int       `json:"seasons"`
 	Episodes int       `json:"episodes"`
 	Begin    time.Time `json:"beginAt"`
 	End      time.Time `json:"endAt"`
+	Watching bool      `json:"isWatching"`
 }

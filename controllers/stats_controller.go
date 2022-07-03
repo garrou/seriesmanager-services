@@ -45,55 +45,47 @@ func (s *statsController) Routes(e *gin.Engine) {
 func (s *statsController) GetNbSeasonsByYears(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	stats := s.statsService.GetNbSeasonsByYears(userId)
-	response := helpers.NewResponse("", stats)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", stats))
 }
 
 func (s *statsController) GetNbEpisodesByYears(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	stats := s.statsService.GetEpisodesByYears(userId)
-	response := helpers.NewResponse("", stats)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", stats))
 }
 
 func (s *statsController) GetTimeSeasonsByYears(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	stats := s.statsService.GetTimeSeasonsByYears(userId)
-	response := helpers.NewResponse("", stats)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", stats))
 }
 
 func (s *statsController) GetTotalSeries(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	stats := s.statsService.GetTotalSeries(userId)
-	response := helpers.NewResponse("", stats)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", stats))
 }
 
 func (s *statsController) GetTotalTime(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	stats := s.statsService.GetTotalTime(userId)
-	response := helpers.NewResponse("", stats)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", stats))
 }
 
 func (s *statsController) GetTimeCurrentMonth(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	stats := s.statsService.GetTimeCurrentMonth(userId)
-	response := helpers.NewResponse("", stats)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", stats))
 }
 
 func (s *statsController) GetAddedSeriesByYears(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	stats := s.statsService.GetAddedSeriesByYears(userId)
-	response := helpers.NewResponse("", stats)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", stats))
 }
 
 func (s *statsController) GetNbSeasonsByMonths(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	stats := s.statsService.GetNbSeasonsByMonths(userId)
-	response := helpers.NewResponse("", stats)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", stats))
 }

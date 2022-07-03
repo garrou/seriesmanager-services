@@ -81,8 +81,8 @@ func (s *statsRepository) FindTotalSeries(userId string) int64 {
 	var total int64
 	s.db.
 		Model(entities.Series{}).
-		Count(&total).
-		Where("user_id = ?", userId)
+		Where("user_id = ?", userId).
+		Count(&total)
 	return total
 }
 
@@ -103,9 +103,7 @@ func (s *statsRepository) FindTimeCurrentMonth(userId string) dto.SeriesStatDto 
 		Model(entities.Series{}).
 		Select("SUM(seasons.episodes * series.episode_length) AS total").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
-		Where(`user_id = ? 
-AND EXTRACT(YEAR FROM viewed_at) = EXTRACT(YEAR FROM NOW())
-AND EXTRACT(MONTH FROM viewed_at) = EXTRACT(MONTH FROM NOW())`, userId).
+		Where(`user_id = ? AND viewed_at >= DATE_TRUNC('month', CURRENT_DATE)`, userId).
 		Scan(&stats)
 	return stats
 }

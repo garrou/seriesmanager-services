@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"github.com/gin-gonic/gin"
+	"strconv"
 
 	"net/http"
 	"seriesmanager-services/helpers"
@@ -42,15 +43,13 @@ func (s *searchController) Routes(e *gin.Engine) {
 // Discover calls api and returns random series
 func (s *searchController) Discover(ctx *gin.Context) {
 	series := s.searchService.Discover()
-	response := helpers.NewResponse("", series)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", series))
 }
 
 // GetSeriesByName calls api to get series by name
 func (s *searchController) GetSeriesByName(ctx *gin.Context) {
 	series := s.searchService.SearchSeriesByName(ctx.Param("name"))
-	response := helpers.NewResponse("", series)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", series))
 }
 
 // Get returns empty body
@@ -60,21 +59,32 @@ func (s *searchController) Get(ctx *gin.Context) {
 
 // GetSeasonsBySid calls api to get seasons by series id
 func (s *searchController) GetSeasonsBySid(ctx *gin.Context) {
-	seasons := s.searchService.SearchSeasonsBySid(ctx.Param("sid"))
+	sid, err := strconv.Atoi(ctx.Param("sid"))
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
+		return
+	}
+	seasons := s.searchService.SearchSeasonsBySid(sid)
 	response := helpers.NewResponse("", seasons)
 	ctx.JSON(http.StatusOK, response)
 }
 
 // GetEpisodesBySidBySeason calls api to get episodes by series id and season number
 func (s *searchController) GetEpisodesBySidBySeason(ctx *gin.Context) {
-	episodes := s.searchService.SearchEpisodesBySidBySeason(ctx.Param("sid"), ctx.Param("number"))
-	response := helpers.NewResponse("", episodes)
-	ctx.JSON(http.StatusOK, response)
+	sid, errId := strconv.Atoi(ctx.Param("sid"))
+	number, errNum := strconv.Atoi(ctx.Param("number"))
+
+	if errId != nil || errNum != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
+		return
+	}
+	episodes := s.searchService.SearchEpisodesBySidBySeason(sid, number)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", episodes))
 }
 
 // GetImagesBySeriesName calls api to get series image with his name
 func (s *searchController) GetImagesBySeriesName(ctx *gin.Context) {
 	images := s.searchService.SearchImagesBySeriesName(ctx.Param("name"))
-	response := helpers.NewResponse("", images)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", images))
 }
