@@ -14,4 +14,5 @@ type Series struct {
 	AddedAt       time.Time `gorm:"not null;"`
 	Seasons       []Season
 	UserID        string `gorm:"not null;"`
+	IsWatching    bool   `gorm:"type:boolean;default:true"`
 }

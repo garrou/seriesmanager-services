@@ -34,27 +34,27 @@ func NewSeasonService(seasonRepository repositories.SeasonRepository, seriesRepo
 }
 
 func (s *seasonService) AddSeason(userId string, season dto.SeasonCreateDto) interface{} {
-	exists := s.seriesRepository.ExistsByUserIdSeriesId(userId, season.SeriesId)
+	res := s.seriesRepository.FindByUserIdSeriesId(userId, season.SeriesId)
 
-	if !exists {
-		return nil
+	if _, ok := res.(entities.Series); ok {
+		return s.seasonRepository.Save(entities.Season{
+			Number:   season.Number,
+			Episodes: season.Episodes,
+			Image:    season.Image,
+			ViewedAt: season.ViewedAt,
+			SeriesID: season.SeriesId,
+		})
 	}
-	return s.seasonRepository.Save(entities.Season{
-		Number:   season.Number,
-		Episodes: season.Episodes,
-		Image:    season.Image,
-		ViewedAt: season.ViewedAt,
-		SeriesID: season.SeriesId,
-	})
+	return nil
 }
 
 func (s *seasonService) GetDistinctBySeriesId(userId string, seriesId int) []dto.SeasonDto {
-	exists := s.seriesRepository.ExistsByUserIdSeriesId(userId, seriesId)
+	res := s.seriesRepository.FindByUserIdSeriesId(userId, seriesId)
 
-	if !exists {
-		return nil
+	if _, ok := res.(entities.Series); ok {
+		return s.seasonRepository.FindDistinctBySeriesId(seriesId)
 	}
-	return s.seasonRepository.FindDistinctBySeriesId(seriesId)
+	return nil
 }
 
 func (s *seasonService) GetInfosBySeasonBySeriesId(userId string, seriesId, number int) []dto.SeasonInfosDto {
@@ -66,26 +66,26 @@ func (s *seasonService) GetDetailsSeasonsNbViewed(userId string, seriesId int) [
 }
 
 func (s *seasonService) AddAllSeasonsBySeries(userId string, seriesId int, seasons dto.SeasonsCreateAllDto) interface{} {
-	exists := s.seriesRepository.ExistsByUserIdSeriesId(userId, seriesId)
+	res := s.seriesRepository.FindByUserIdSeriesId(userId, seriesId)
 
-	if !exists {
-		return nil
+	if _, ok := res.(entities.Series); ok {
+		for _, season := range seasons.Seasons {
+			s.seasonRepository.Save(entities.Season{
+				Number:   season.Number,
+				Episodes: season.Episodes,
+				Image:    season.Image,
+				ViewedAt: seasons.ViewedAt,
+				SeriesID: seriesId,
+			})
+		}
+		return seasons
 	}
-	for _, season := range seasons.Seasons {
-		s.seasonRepository.Save(entities.Season{
-			Number:   season.Number,
-			Episodes: season.Episodes,
-			Image:    season.Image,
-			ViewedAt: seasons.ViewedAt,
-			SeriesID: seriesId,
-		})
-	}
-	return seasons
+	return nil
 }
 
 func (s *seasonService) GetToContinue(userId string) []dto.SeriesToContinueDto {
 	apiKey := os.Getenv("API_KEY")
-	series := s.seriesRepository.FindByUserId(userId)
+	series := s.seriesRepository.FindByUserIdAndWatching(userId)
 	var seasons dto.SearchSeasonsDto
 	var toContinue []dto.SeriesToContinueDto
 

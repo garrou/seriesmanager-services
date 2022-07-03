@@ -115,9 +115,11 @@ type SeriesToContinueDto struct {
 
 // SeriesInfoDto represents user series info
 type SeriesInfoDto struct {
+	Id       int       `json:"id"`
 	Duration int       `json:"duration"`
 	Seasons  int       `json:"seasons"`
 	Episodes int       `json:"episodes"`
 	Begin    time.Time `json:"beginAt"`
 	End      time.Time `json:"endAt"`
+	Watching bool      `json:"isWatching"`
 }

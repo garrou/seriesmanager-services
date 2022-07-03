@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"seriesmanager-services/dto"
+	"seriesmanager-services/entities"
 	"seriesmanager-services/helpers"
 	"seriesmanager-services/middlewares"
 	"seriesmanager-services/services"
@@ -17,6 +18,7 @@ type SeriesController interface {
 	GetByName(ctx *gin.Context)
 	GetInfosById(ctx *gin.Context)
 	Delete(ctx *gin.Context)
+	UpdateWatching(ctx *gin.Context)
 }
 
 type seriesController struct {
@@ -37,6 +39,7 @@ func (s *seriesController) Routes(e *gin.Engine) {
 		routes.GET("/names/:name", s.GetByName)
 		routes.GET("/:id/infos", s.GetInfosById)
 		routes.DELETE("/:id", s.Delete)
+		routes.PATCH("/:id/watching", s.UpdateWatching)
 	}
 }
 
@@ -45,20 +48,17 @@ func (s *seriesController) Post(ctx *gin.Context) {
 	var seriesDto dto.SeriesCreateDto
 
 	if errDto := ctx.ShouldBind(&seriesDto); errDto != nil {
-		response := helpers.NewResponse("Informations invalides", nil)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
 		return
 	}
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	seriesDto.UserId = userId
 
 	if s.seriesService.IsDuplicateSeries(seriesDto) {
-		response := helpers.NewResponse("Vous avez déjà ajouté cette série", nil)
-		ctx.AbortWithStatusJSON(http.StatusConflict, response)
+		ctx.AbortWithStatusJSON(http.StatusConflict, helpers.NewResponse("Vous avez déjà ajouté cette série", nil))
 	} else {
 		series := s.seriesService.AddSeries(seriesDto)
-		response := helpers.NewResponse("Série ajoutée", series)
-		ctx.JSON(http.StatusCreated, response)
+		ctx.JSON(http.StatusCreated, helpers.NewResponse("Série ajoutée", series))
 	}
 }
 
@@ -66,16 +66,14 @@ func (s *seriesController) Post(ctx *gin.Context) {
 func (s *seriesController) GetAll(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	series := s.seriesService.GetAll(userId)
-	response := helpers.NewResponse("", series)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", series))
 }
 
 // GetByName returns all series with title matching
 func (s *seriesController) GetByName(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	series := s.seriesService.GetByUserIdByName(userId, ctx.Param("name"))
-	response := helpers.NewResponse("", series)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", series))
 }
 
 // GetInfosById returns series by id
@@ -83,14 +81,12 @@ func (s *seriesController) GetInfosById(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 
 	if err != nil {
-		response := helpers.NewResponse("Impossible de récupérer les informations", nil)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, response)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
 		return
 	}
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	infos := s.seriesService.GetInfosBySeriesId(userId, id)
-	response := helpers.NewResponse("", infos)
-	ctx.JSON(http.StatusOK, response)
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", infos))
 }
 
 // Delete deletes series with userId and id
@@ -99,16 +95,31 @@ func (s *seriesController) Delete(ctx *gin.Context) {
 	seriesId, err := strconv.Atoi(ctx.Param("id"))
 
 	if err != nil {
-		ctx.AbortWithStatus(http.StatusBadRequest)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
 		return
 	}
 	isDeleted := s.seriesService.DeleteByUserIdBySeriesId(userId, seriesId)
 
 	if isDeleted {
-		response := helpers.NewResponse("Série supprimée", nil)
-		ctx.JSON(http.StatusNoContent, response)
+		ctx.JSON(http.StatusNoContent, helpers.NewResponse("Série supprimée", nil))
 	} else {
-		response := helpers.NewResponse("Une erreur est survenue durant la suppression de la série", nil)
-		ctx.JSON(http.StatusBadRequest, response)
+		ctx.JSON(http.StatusBadRequest, helpers.NewResponse("Impossible de supprimer la série", nil))
+	}
+}
+
+func (s *seriesController) UpdateWatching(ctx *gin.Context) {
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	seriesId, err := strconv.Atoi(ctx.Param("id"))
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
+		return
+	}
+	res := s.seriesService.UpdateWatching(userId, seriesId)
+
+	if _, ok := res.(entities.Series); ok {
+		ctx.JSON(http.StatusOK, helpers.NewResponse("Série modifiée", nil))
+	} else {
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Impossible de modifier la série", nil))
 	}
 }
