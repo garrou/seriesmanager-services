@@ -36,7 +36,7 @@ func (s *seasonController) Routes(e *gin.Engine) {
 	routes := e.Group("/api/seasons", middlewares.AuthorizeJwt(s.jwtHelper))
 	{
 		routes.POST("/", s.Post)
-		routes.POST("/series/:id/all", s.PostAllSeasons)
+		routes.POST("/series/all", s.PostAllSeasons)
 		routes.GET("/series/:id", s.GetDistinctBySeriesId)
 		routes.GET("/:number/series/:id/infos", s.GetInfosBySeasonBySeriesId)
 		routes.GET("/series/:id/viewed", s.GetDetailsSeasonsNbViewed)
