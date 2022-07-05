@@ -107,6 +107,7 @@ func (s *seriesController) Delete(ctx *gin.Context) {
 	}
 }
 
+// UpdateWatching updates field IsWatching to avoid api call when get series to continue
 func (s *seriesController) UpdateWatching(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	seriesId, err := strconv.Atoi(ctx.Param("id"))

@@ -11,11 +11,10 @@ import (
 )
 
 type SeasonService interface {
-	AddSeason(userId string, season dto.SeasonCreateDto) interface{}
 	GetDistinctBySeriesId(userId string, seriesId int) []dto.SeasonDto
 	GetInfosBySeasonBySeriesId(userId string, seriesId, number int) []dto.SeasonInfosDto
 	GetDetailsSeasonsNbViewed(userId string, seriesId int) []dto.StatDto
-	AddAllSeasonsBySeries(userId string, seriesId int, seasons dto.SeasonsCreateAllDto) interface{}
+	AddSeasonsBySeries(userId string, seriesId int, seasons dto.SeasonsCreateDto) interface{}
 	GetToContinue(userId string) []dto.SeriesToContinueDto
 	UpdateSeason(userId string, updateDto dto.SeasonUpdateDto) interface{}
 	DeleteSeason(userId string, seasonId int) bool
@@ -31,21 +30,6 @@ func NewSeasonService(seasonRepository repositories.SeasonRepository, seriesRepo
 		seasonRepository: seasonRepository,
 		seriesRepository: seriesRepository,
 	}
-}
-
-func (s *seasonService) AddSeason(userId string, season dto.SeasonCreateDto) interface{} {
-	res := s.seriesRepository.FindByUserIdSeriesId(userId, season.SeriesId)
-
-	if _, ok := res.(entities.Series); ok {
-		return s.seasonRepository.Save(entities.Season{
-			Number:   season.Number,
-			Episodes: season.Episodes,
-			Image:    season.Image,
-			ViewedAt: season.ViewedAt,
-			SeriesID: season.SeriesId,
-		})
-	}
-	return nil
 }
 
 func (s *seasonService) GetDistinctBySeriesId(userId string, seriesId int) []dto.SeasonDto {
@@ -65,22 +49,22 @@ func (s *seasonService) GetDetailsSeasonsNbViewed(userId string, seriesId int) [
 	return s.seasonRepository.FindDetailsSeasonsNbViewed(userId, seriesId)
 }
 
-func (s *seasonService) AddAllSeasonsBySeries(userId string, seriesId int, seasons dto.SeasonsCreateAllDto) interface{} {
+func (s *seasonService) AddSeasonsBySeries(userId string, seriesId int, seasons dto.SeasonsCreateDto) interface{} {
 	res := s.seriesRepository.FindByUserIdSeriesId(userId, seriesId)
 
-	if _, ok := res.(entities.Series); ok {
-		for _, season := range seasons.Seasons {
-			s.seasonRepository.Save(entities.Season{
-				Number:   season.Number,
-				Episodes: season.Episodes,
-				Image:    season.Image,
-				ViewedAt: seasons.ViewedAt,
-				SeriesID: seriesId,
-			})
-		}
-		return seasons
+	if _, ok := res.(entities.Series); !ok {
+		return nil
 	}
-	return nil
+	for _, season := range seasons.Seasons {
+		s.seasonRepository.Save(entities.Season{
+			Number:   season.Number,
+			Episodes: season.Episodes,
+			Image:    season.Image,
+			ViewedAt: seasons.ViewedAt,
+			SeriesID: seriesId,
+		})
+	}
+	return seasons
 }
 
 func (s *seasonService) GetToContinue(userId string) []dto.SeriesToContinueDto {
@@ -90,13 +74,13 @@ func (s *seasonService) GetToContinue(userId string) []dto.SeriesToContinueDto {
 	var toContinue []dto.SeriesToContinueDto
 
 	for _, userSeries := range series {
+
 		userSeasons := s.seasonRepository.FindDistinctBySeriesId(userSeries.ID)
 		body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/seasons?id=%d&key=%s", userSeries.Sid, apiKey))
 
 		if err := json.Unmarshal(body, &seasons); err != nil {
 			panic(err.Error())
 		}
-
 		diff := len(seasons.Seasons) - len(userSeasons)
 
 		if diff > 0 {

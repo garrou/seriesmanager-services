@@ -76,14 +76,14 @@ func (s *searchService) SearchImagesBySeriesName(name string) []string {
 	if err := json.Unmarshal(body, &searchedSeries); err != nil {
 		panic(err.Error())
 	}
-	images := make([]models.Pictures, len(searchedSeries.Series))
+	var images models.Pictures
 	var urls []string
 
-	for i, series := range searchedSeries.Series {
+	for _, series := range searchedSeries.Series {
 		body = helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/pictures?id=%d&key=%s", series.Id, apiKey))
-		_ = json.Unmarshal(body, &images[i])
+		_ = json.Unmarshal(body, &images)
 
-		for _, u := range images[i].Pictures {
+		for _, u := range images.Pictures {
 			urls = append(urls, u.Url)
 		}
 	}
