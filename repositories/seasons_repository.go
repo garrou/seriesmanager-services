@@ -8,7 +8,7 @@ import (
 
 type SeasonRepository interface {
 	Save(season entities.Season) entities.Season
-	FindDistinctBySeriesId(seriesId int) []dto.SeasonDto
+	FindDistinctBySeriesId(seriesId int) []entities.Season
 	FindInfosBySeriesIdBySeason(userId string, seriesId, number int) []dto.SeasonInfosDto
 	FindDetailsSeasonsNbViewed(userId string, seriesId int) []dto.StatDto
 	FindById(userId string, id int) interface{}
@@ -28,14 +28,12 @@ func (s *seasonRepository) Save(season entities.Season) entities.Season {
 	return season
 }
 
-func (s *seasonRepository) FindDistinctBySeriesId(seriesId int) []dto.SeasonDto {
-	var seasons []dto.SeasonDto
+func (s *seasonRepository) FindDistinctBySeriesId(seriesId int) []entities.Season {
+	var seasons []entities.Season
 	s.db.
-		Model(&entities.Season{}).
 		Distinct("ON (number) number, *").
-		Where("series_id = ?", seriesId).
 		Order("number, viewed_at").
-		Scan(&seasons)
+		Find(&seasons, "series_id = ?", seriesId)
 	return seasons
 }
 
@@ -67,7 +65,6 @@ func (s *seasonRepository) FindDetailsSeasonsNbViewed(userId string, seriesId in
 func (s *seasonRepository) FindById(userId string, id int) interface{} {
 	var season entities.Season
 	s.db.
-		Model(entities.Season{}).
 		Joins("JOIN series ON series.id = seasons.series_id").
 		Find(&season, "seasons.id = ? AND user_id = ?", id, userId)
 	return season

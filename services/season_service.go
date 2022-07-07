@@ -35,10 +35,24 @@ func NewSeasonService(seasonRepository repositories.SeasonRepository, seriesRepo
 func (s *seasonService) GetDistinctBySeriesId(userId string, seriesId int) []dto.SeasonDto {
 	res := s.seriesRepository.FindByUserIdSeriesId(userId, seriesId)
 
-	if _, ok := res.(entities.Series); ok {
-		return s.seasonRepository.FindDistinctBySeriesId(seriesId)
+	if _, ok := res.(entities.Series); !ok {
+		return nil
 	}
-	return nil
+
+	dbSeasons := s.seasonRepository.FindDistinctBySeriesId(seriesId)
+	var seasons []dto.SeasonDto
+
+	for _, season := range dbSeasons {
+		seasons = append(seasons, dto.SeasonDto{
+			ID:       season.ID,
+			ViewedAt: season.ViewedAt,
+			SeriesID: season.SeriesID,
+			Image:    season.Image,
+			Number:   season.Number,
+			Episodes: season.Episodes,
+		})
+	}
+	return seasons
 }
 
 func (s *seasonService) GetInfosBySeasonBySeriesId(userId string, seriesId, number int) []dto.SeasonInfosDto {
