@@ -72,6 +72,6 @@ func (a *authController) Login(ctx *gin.Context) {
 		token := a.jwtHelper.GenerateToken(user.ID)
 		ctx.JSON(http.StatusOK, helpers.NewResponse("", token))
 	} else {
-		ctx.AbortWithStatusJSON(http.StatusUnauthorized, helpers.NewResponse("Informations invalides", nil))
+		ctx.AbortWithStatusJSON(http.StatusUnauthorized, helpers.NewResponse("Email ou mot de passe incorrect(s)", nil))
 	}
 }

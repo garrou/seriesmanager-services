@@ -1,3 +1,4 @@
 .gitignore
 .git
-*.sql
+.github
+*.md

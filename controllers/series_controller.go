@@ -101,12 +101,13 @@ func (s *seriesController) Delete(ctx *gin.Context) {
 	isDeleted := s.seriesService.DeleteByUserIdBySeriesId(userId, seriesId)
 
 	if isDeleted {
-		ctx.JSON(http.StatusNoContent, helpers.NewResponse("Série supprimée", nil))
+		ctx.JSON(http.StatusOK, helpers.NewResponse("Série supprimée", nil))
 	} else {
-		ctx.JSON(http.StatusBadRequest, helpers.NewResponse("Impossible de supprimer la série", nil))
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Impossible de supprimer la série", nil))
 	}
 }
 
+// UpdateWatching updates field IsWatching to avoid api call when get series to continue
 func (s *seriesController) UpdateWatching(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	seriesId, err := strconv.Atoi(ctx.Param("id"))

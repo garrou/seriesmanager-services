@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"fmt"
 	"gorm.io/gorm"
 	"seriesmanager-services/dto"
 	"seriesmanager-services/entities"
@@ -72,7 +71,7 @@ func (s *seriesRepository) Exists(sid int, userId string) *gorm.DB {
 
 func (s *seriesRepository) FindInfosBySeriesId(userId string, seriesId int) dto.SeriesInfoDto {
 	var infos dto.SeriesInfoDto
-	res := s.db.
+	s.db.
 		Model(&entities.Series{}).
 		Select(`
 series.id, 
@@ -86,7 +85,6 @@ is_watching AS watching`).
 		Where("series.id = ? AND user_id = ?", seriesId, userId).
 		Group("series.id, episode_length").
 		Scan(&infos)
-	fmt.Println(res)
 	return infos
 }
 

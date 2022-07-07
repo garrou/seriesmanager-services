@@ -12,15 +12,6 @@ type SeasonDto struct {
 	SeriesID int       `json:"seriesId"`
 }
 
-// SeasonCreateDto represents a season to create
-type SeasonCreateDto struct {
-	Number   int       `json:"number" binding:"required"`
-	Episodes int       `json:"episodes" binding:"required"`
-	Image    string    `json:"image" validate:"max:150"`
-	ViewedAt time.Time `json:"viewedAt" binding:"required"`
-	SeriesId int       `json:"seriesId" binding:"required"`
-}
-
 // SearchSeasonsDto represents an api season
 type SearchSeasonsDto struct {
 	Seasons []struct {
@@ -31,8 +22,8 @@ type SearchSeasonsDto struct {
 	} `json:"seasons"`
 }
 
-// SeasonsCreateAllDto represents all seasons of series to create
-type SeasonsCreateAllDto struct {
+// SeasonsCreateDto represents all seasons of series to create
+type SeasonsCreateDto struct {
 	ViewedAt time.Time `json:"viewedAt" binding:"required"`
 	SeriesId int       `json:"seriesId" binding:"required"`
 	Seasons  []struct {

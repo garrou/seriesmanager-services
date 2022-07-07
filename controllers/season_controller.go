@@ -17,7 +17,6 @@ type SeasonController interface {
 	GetDistinctBySeriesId(ctx *gin.Context)
 	GetInfosBySeasonBySeriesId(ctx *gin.Context)
 	GetDetailsSeasonsNbViewed(ctx *gin.Context)
-	PostAllSeasons(ctx *gin.Context)
 	GetToContinue(ctx *gin.Context)
 	Update(ctx *gin.Context)
 	Delete(ctx *gin.Context)
@@ -36,7 +35,6 @@ func (s *seasonController) Routes(e *gin.Engine) {
 	routes := e.Group("/api/seasons", middlewares.AuthorizeJwt(s.jwtHelper))
 	{
 		routes.POST("/", s.Post)
-		routes.POST("/series/:id/all", s.PostAllSeasons)
 		routes.GET("/series/:id", s.GetDistinctBySeriesId)
 		routes.GET("/:number/series/:id/infos", s.GetInfosBySeasonBySeriesId)
 		routes.GET("/series/:id/viewed", s.GetDetailsSeasonsNbViewed)
@@ -48,19 +46,19 @@ func (s *seasonController) Routes(e *gin.Engine) {
 
 // Post user adds a season
 func (s *seasonController) Post(ctx *gin.Context) {
-	var seasonDto dto.SeasonCreateDto
+	var seasonsDto dto.SeasonsCreateDto
 
-	if errDto := ctx.ShouldBind(&seasonDto); errDto != nil {
+	if errDto := ctx.ShouldBind(&seasonsDto); errDto != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
 		return
 	}
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
-	res := s.seasonService.AddSeason(userId, seasonDto)
+	res := s.seasonService.AddSeasonsBySeries(userId, seasonsDto.SeriesId, seasonsDto)
 
-	if season, ok := res.(entities.Season); ok {
-		ctx.JSON(http.StatusCreated, helpers.NewResponse("Saison ajoutée", season))
+	if seasons, ok := res.(dto.SeasonsCreateDto); ok {
+		ctx.JSON(http.StatusOK, helpers.NewResponse("Saison(s) ajoutée(s)", seasons))
 	} else {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Impossible d'ajouter la saison", nil))
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Impossible d'ajouter les saison", nil))
 	}
 }
 
@@ -102,24 +100,6 @@ func (s *seasonController) GetDetailsSeasonsNbViewed(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	infos := s.seasonService.GetDetailsSeasonsNbViewed(userId, seriesId)
 	ctx.JSON(http.StatusOK, helpers.NewResponse("", infos))
-}
-
-// PostAllSeasons allows user to add all seasons of a series
-func (s *seasonController) PostAllSeasons(ctx *gin.Context) {
-	var seasonsDto dto.SeasonsCreateAllDto
-
-	if errDto := ctx.ShouldBind(&seasonsDto); errDto != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
-		return
-	}
-	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
-	res := s.seasonService.AddAllSeasonsBySeries(userId, seasonsDto.SeriesId, seasonsDto)
-
-	if seasons, ok := res.(dto.SeasonsCreateAllDto); ok {
-		ctx.JSON(http.StatusOK, helpers.NewResponse("Saison ajoutées", seasons))
-	} else {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Impossible d'ajouter les saison", nil))
-	}
 }
 
 // GetToContinue get user's series with unwatched seasons
