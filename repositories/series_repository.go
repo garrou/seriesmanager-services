@@ -45,7 +45,7 @@ func (s *seriesRepository) FindByUserId(userId string) []entities.Series {
 func (s *seriesRepository) FindByUserIdAndWatching(userId string) []entities.Series {
 	var series []entities.Series
 	res := s.db.
-		Order("added_at DESC").
+		Order("title").
 		Find(&series, "user_id = ? AND is_watching = TRUE", userId)
 
 	if res.Error == nil {
