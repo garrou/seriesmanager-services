@@ -13,6 +13,7 @@ require github.com/golang-jwt/jwt v3.2.2+incompatible
 require github.com/google/uuid v1.3.0
 
 require (
+	github.com/gin-gonic/contrib v0.0.0-20201101042839-6a891bf89f19 // indirect
 	github.com/goccy/go-json v0.9.8 // indirect
 	github.com/pelletier/go-toml/v2 v2.0.2 // indirect
 	golang.org/x/net v0.0.0-20220708220712-1185a9018129 // indirect
