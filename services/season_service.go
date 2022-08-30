@@ -8,6 +8,7 @@ import (
 	"seriesmanager-services/entities"
 	"seriesmanager-services/helpers"
 	"seriesmanager-services/repositories"
+	"sync"
 )
 
 type SeasonService interface {
@@ -82,32 +83,37 @@ func (s *seasonService) AddSeasonsBySeries(userId string, seriesId int, seasons 
 }
 
 func (s *seasonService) GetToContinue(userId string) []dto.SeriesToContinueDto {
-	apiKey := os.Getenv("API_KEY")
-	series := s.seriesRepository.FindByUserIdAndWatching(userId)
 	var seasons dto.SearchSeasonsDto
 	var toContinue []dto.SeriesToContinueDto
+	var wg sync.WaitGroup
+	series := s.seriesRepository.FindByUserIdAndWatching(userId)
+	apiKey := os.Getenv("API_KEY")
 
 	for _, userSeries := range series {
+		wg.Add(1)
+		go func(series entities.Series) {
+			defer wg.Done()
+			userSeasons := s.seasonRepository.FindDistinctBySeriesId(series.ID)
+			body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/seasons?id=%d&key=%s", series.Sid, apiKey))
 
-		userSeasons := s.seasonRepository.FindDistinctBySeriesId(userSeries.ID)
-		body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/seasons?id=%d&key=%s", userSeries.Sid, apiKey))
+			if err := json.Unmarshal(body, &seasons); err != nil {
+				panic(err.Error())
+			}
+			diff := len(seasons.Seasons) - len(userSeasons)
 
-		if err := json.Unmarshal(body, &seasons); err != nil {
-			panic(err.Error())
-		}
-		diff := len(seasons.Seasons) - len(userSeasons)
-
-		if diff > 0 {
-			toContinue = append(toContinue, dto.SeriesToContinueDto{
-				Id:            userSeries.ID,
-				Title:         userSeries.Title,
-				Poster:        userSeries.Poster,
-				EpisodeLength: userSeries.EpisodeLength,
-				Sid:           userSeries.Sid,
-				NbMissing:     diff,
-			})
-		}
+			if diff > 0 {
+				toContinue = append(toContinue, dto.SeriesToContinueDto{
+					Id:            series.ID,
+					Title:         series.Title,
+					Poster:        series.Poster,
+					EpisodeLength: series.EpisodeLength,
+					Sid:           series.Sid,
+					NbMissing:     diff,
+				})
+			}
+		}(userSeries)
 	}
+	wg.Wait()
 	return toContinue
 }
 

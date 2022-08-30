@@ -32,15 +32,15 @@ func NewSeasonController(seasonService services.SeasonService, jwtHelper helpers
 }
 
 func (s *seasonController) Routes(e *gin.Engine) {
-	routes := e.Group("/api/seasons", middlewares.AuthorizeJwt(s.jwtHelper))
+	routes := e.Group("/api", middlewares.AuthorizeJwt(s.jwtHelper))
 	{
-		routes.POST("/", s.Post)
-		routes.GET("/series/:id", s.GetDistinctBySeriesId)
-		routes.GET("/:number/series/:id/infos", s.GetInfosBySeasonBySeriesId)
-		routes.GET("/series/:id/viewed", s.GetDetailsSeasonsNbViewed)
-		routes.GET("/continue", s.GetToContinue)
-		routes.PATCH("/:id", s.Update)
-		routes.DELETE("/:id", s.Delete)
+		routes.POST("/seasons", s.Post)
+		routes.GET("/series/:id/seasons", s.GetDistinctBySeriesId)
+		routes.GET("/series/:id/seasons/:number", s.GetInfosBySeasonBySeriesId)
+		routes.GET("/series/:id/seasons/viewed", s.GetDetailsSeasonsNbViewed)
+		routes.GET("/seasons/continue", s.GetToContinue)
+		routes.PATCH("/seasons/:id", s.Update)
+		routes.DELETE("/seasons/:id", s.Delete)
 	}
 }
 

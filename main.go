@@ -2,16 +2,15 @@ package main
 
 import (
 	"fmt"
+	"github.com/gin-gonic/contrib/static"
+	"github.com/gin-gonic/gin"
 	"log"
 	"os"
 	"seriesmanager-services/controllers"
 	"seriesmanager-services/database"
 	"seriesmanager-services/helpers"
-	"seriesmanager-services/middlewares"
 	"seriesmanager-services/repositories"
 	"seriesmanager-services/services"
-
-	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -47,11 +46,8 @@ func main() {
 
 	gin.SetMode(os.Getenv("GIN_MODE"))
 	router := gin.Default()
-	router.Use(middlewares.Cors())
+	router.Use(static.Serve("/", static.LocalFile("./views", true)))
 
-	if err := router.SetTrustedProxies(nil); err != nil {
-		panic(err.Error())
-	}
 	authController.Routes(router)
 	userController.Routes(router)
 	searchController.Routes(router)
@@ -59,6 +55,9 @@ func main() {
 	seasonController.Routes(router)
 	statsController.Routes(router)
 
+	if err := router.SetTrustedProxies(nil); err != nil {
+		panic(err.Error())
+	}
 	if err := router.Run(fmt.Sprintf(":%s", os.Getenv("PORT"))); err != nil {
 		log.Fatal(err)
 	}

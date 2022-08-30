@@ -37,7 +37,7 @@ func (s *seriesController) Routes(e *gin.Engine) {
 		routes.GET("/", s.GetAll)
 		routes.GET("/names", s.GetByName)
 		routes.GET("/names/:name", s.GetByName)
-		routes.GET("/:id/infos", s.GetInfosById)
+		routes.GET("/:id", s.GetInfosById)
 		routes.DELETE("/:id", s.Delete)
 		routes.PATCH("/:id/watching", s.UpdateWatching)
 	}
