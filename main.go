@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"github.com/gin-gonic/contrib/static"
-	"github.com/gin-gonic/gin"
 	"log"
 	"os"
 	"seriesmanager-services/controllers"
@@ -11,6 +9,8 @@ import (
 	"seriesmanager-services/helpers"
 	"seriesmanager-services/repositories"
 	"seriesmanager-services/services"
+
+	"github.com/gin-gonic/gin"
 )
 
 var (
@@ -46,7 +46,6 @@ func main() {
 
 	gin.SetMode(os.Getenv("GIN_MODE"))
 	router := gin.Default()
-	router.Use(static.Serve("/", static.LocalFile("./views", true)))
 
 	authController.Routes(router)
 	userController.Routes(router)
