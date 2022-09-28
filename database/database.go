@@ -2,20 +2,16 @@ package database
 
 import (
 	"fmt"
-	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"os"
 	"seriesmanager-services/entities"
 )
 
-func Open() *gorm.DB {
+var Db *gorm.DB
 
-	errEnv := godotenv.Load()
+func Open() {
 
-	if errEnv != nil {
-		panic(errEnv.Error())
-	}
 	user := os.Getenv("DB_USER")
 	pass := os.Getenv("DB_PASS")
 	host := os.Getenv("DB_HOST")
@@ -31,7 +27,7 @@ func Open() *gorm.DB {
 	if errMigrate := db.AutoMigrate(&entities.User{}, &entities.Series{}, &entities.Season{}); errMigrate != nil {
 		panic(errMigrate)
 	}
-	return db
+	Db = db
 }
 
 func Close(db *gorm.DB) {
@@ -44,5 +40,3 @@ func Close(db *gorm.DB) {
 		panic(errClose.Error())
 	}
 }
-
-// TODO: delete, add with userId each time

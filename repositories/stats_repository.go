@@ -1,34 +1,14 @@
 package repositories
 
 import (
-	"gorm.io/gorm"
+	"seriesmanager-services/database"
 	"seriesmanager-services/dto"
 	"seriesmanager-services/entities"
 )
 
-type StatsRepository interface {
-	FindNbSeasonsByYears(userId string) []dto.StatDto
-	FindNbSeasonsByMonths(userId string) []dto.StatDto
-	FindTimeSeasonsByYears(userId string) []dto.StatDto
-	FindEpisodesByYears(userId string) []dto.StatDto
-	FindTotalSeries(userId string) int64
-	FindTotalTime(userId string) dto.SeriesStatDto
-	FindTimeCurrentMonth(userId string) dto.SeriesStatDto
-	FindTimeCurrentYear(userId string) dto.SeriesStatDto
-	FindAddedSeriesByYears(userId string) []dto.StatDto
-}
-
-type statsRepository struct {
-	db *gorm.DB
-}
-
-func NewStatsRepository(db *gorm.DB) StatsRepository {
-	return &statsRepository{db: db}
-}
-
-func (s *statsRepository) FindNbSeasonsByYears(userId string) []dto.StatDto {
+func FindNbSeasonsByYears(userId string) []dto.StatDto {
 	var stats []dto.StatDto
-	s.db.
+	database.Db.
 		Model(entities.Series{}).
 		Select("EXTRACT(YEAR FROM viewed_at) AS label, COUNT(*) AS value").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
@@ -39,9 +19,9 @@ func (s *statsRepository) FindNbSeasonsByYears(userId string) []dto.StatDto {
 	return stats
 }
 
-func (s *statsRepository) FindNbSeasonsByMonths(userId string) []dto.StatDto {
+func FindNbSeasonsByMonths(userId string) []dto.StatDto {
 	var stats []dto.StatDto
-	s.db.
+	database.Db.
 		Model(entities.Series{}).
 		Select("TO_CHAR(viewed_at, 'Month') AS label, COUNT(*) AS value").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
@@ -51,9 +31,9 @@ func (s *statsRepository) FindNbSeasonsByMonths(userId string) []dto.StatDto {
 	return stats
 }
 
-func (s *statsRepository) FindTimeSeasonsByYears(userId string) []dto.StatDto {
+func FindTimeSeasonsByYears(userId string) []dto.StatDto {
 	var stats []dto.StatDto
-	s.db.
+	database.Db.
 		Model(entities.Series{}).
 		Select("EXTRACT(YEAR FROM viewed_at) AS label, SUM(episode_length * episodes) AS value").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
@@ -64,9 +44,9 @@ func (s *statsRepository) FindTimeSeasonsByYears(userId string) []dto.StatDto {
 	return stats
 }
 
-func (s *statsRepository) FindEpisodesByYears(userId string) []dto.StatDto {
+func FindEpisodesByYears(userId string) []dto.StatDto {
 	var stats []dto.StatDto
-	s.db.
+	database.Db.
 		Model(entities.Series{}).
 		Select("EXTRACT(YEAR FROM viewed_at) AS label, SUM(episodes) AS value").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
@@ -77,18 +57,18 @@ func (s *statsRepository) FindEpisodesByYears(userId string) []dto.StatDto {
 	return stats
 }
 
-func (s *statsRepository) FindTotalSeries(userId string) int64 {
+func FindTotalSeries(userId string) int64 {
 	var total int64
-	s.db.
+	database.Db.
 		Model(entities.Series{}).
 		Where("user_id = ?", userId).
 		Count(&total)
 	return total
 }
 
-func (s *statsRepository) FindTotalTime(userId string) dto.SeriesStatDto {
+func FindTotalTime(userId string) dto.SeriesStatDto {
 	var stats dto.SeriesStatDto
-	s.db.
+	database.Db.
 		Model(entities.Series{}).
 		Select("SUM(seasons.episodes * series.episode_length) AS total").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
@@ -97,9 +77,9 @@ func (s *statsRepository) FindTotalTime(userId string) dto.SeriesStatDto {
 	return stats
 }
 
-func (s *statsRepository) FindTimeCurrentMonth(userId string) dto.SeriesStatDto {
+func FindTimeCurrentMonth(userId string) dto.SeriesStatDto {
 	var stats dto.SeriesStatDto
-	s.db.
+	database.Db.
 		Model(entities.Series{}).
 		Select("SUM(seasons.episodes * series.episode_length) AS total").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
@@ -108,9 +88,9 @@ func (s *statsRepository) FindTimeCurrentMonth(userId string) dto.SeriesStatDto 
 	return stats
 }
 
-func (s *statsRepository) FindTimeCurrentYear(userId string) dto.SeriesStatDto {
+func FindTimeCurrentYear(userId string) dto.SeriesStatDto {
 	var stats dto.SeriesStatDto
-	s.db.
+	database.Db.
 		Model(entities.Series{}).
 		Select("SUM(seasons.episodes * series.episode_length) AS total").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
@@ -120,9 +100,9 @@ func (s *statsRepository) FindTimeCurrentYear(userId string) dto.SeriesStatDto {
 	return stats
 }
 
-func (s *statsRepository) FindAddedSeriesByYears(userId string) []dto.StatDto {
+func FindAddedSeriesByYears(userId string) []dto.StatDto {
 	var stats []dto.StatDto
-	s.db.
+	database.Db.
 		Model(entities.Series{}).
 		Select("EXTRACT(YEAR FROM added_at) AS label, COUNT(*) AS value").
 		Where("user_id = ?", userId).

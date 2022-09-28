@@ -1,45 +1,28 @@
 package repositories
 
 import (
-	"gorm.io/gorm"
+	"seriesmanager-services/database"
 	"seriesmanager-services/dto"
 	"seriesmanager-services/entities"
 )
 
-type SeasonRepository interface {
-	Save(season entities.Season) entities.Season
-	FindDistinctBySeriesId(seriesId int) []entities.Season
-	FindInfosBySeriesIdBySeason(userId string, seriesId, number int) []dto.SeasonInfosDto
-	FindDetailsSeasonsNbViewed(userId string, seriesId int) []dto.StatDto
-	FindById(userId string, id int) interface{}
-	DeleteById(seasonId int) bool
-}
-
-type seasonRepository struct {
-	db *gorm.DB
-}
-
-func NewSeasonRepository(db *gorm.DB) SeasonRepository {
-	return &seasonRepository{db: db}
-}
-
-func (s *seasonRepository) Save(season entities.Season) entities.Season {
-	s.db.Save(&season)
+func SaveSeason(season entities.Season) entities.Season {
+	database.Db.Save(&season)
 	return season
 }
 
-func (s *seasonRepository) FindDistinctBySeriesId(seriesId int) []entities.Season {
+func FindDistinctBySeriesId(seriesId int) []entities.Season {
 	var seasons []entities.Season
-	s.db.
+	database.Db.
 		Distinct("ON (number) number, *").
 		Order("number, viewed_at").
 		Find(&seasons, "series_id = ?", seriesId)
 	return seasons
 }
 
-func (s *seasonRepository) FindInfosBySeriesIdBySeason(userId string, seriesId, number int) []dto.SeasonInfosDto {
+func FindInfosBySeriesIdBySeason(userId string, seriesId, number int) []dto.SeasonInfosDto {
 	var infos []dto.SeasonInfosDto
-	s.db.
+	database.Db.
 		Model(&entities.Season{}).
 		Select("seasons.id, seasons.viewed_at, seasons.episodes * episode_length AS duration").
 		Joins("JOIN series ON series.id = series_id").
@@ -49,9 +32,9 @@ func (s *seasonRepository) FindInfosBySeriesIdBySeason(userId string, seriesId, 
 	return infos
 }
 
-func (s *seasonRepository) FindDetailsSeasonsNbViewed(userId string, seriesId int) []dto.StatDto {
+func FindDetailsSeasonsNbViewed(userId string, seriesId int) []dto.StatDto {
 	var details []dto.StatDto
-	s.db.
+	database.Db.
 		Model(entities.Season{}).
 		Select("number AS label, COUNT(*) AS value").
 		Joins("JOIN series ON seasons.series_id = series.id").
@@ -62,15 +45,15 @@ func (s *seasonRepository) FindDetailsSeasonsNbViewed(userId string, seriesId in
 	return details
 }
 
-func (s *seasonRepository) FindById(userId string, id int) interface{} {
+func FindSeasonById(userId string, id int) interface{} {
 	var season entities.Season
-	s.db.
+	database.Db.
 		Joins("JOIN series ON series.id = seasons.series_id").
 		Find(&season, "seasons.id = ? AND user_id = ?", id, userId)
 	return season
 }
 
-func (s *seasonRepository) DeleteById(seasonId int) bool {
-	res := s.db.Delete(&entities.Season{ID: seasonId})
+func DeleteSeasonById(seasonId int) bool {
+	res := database.Db.Delete(&entities.Season{ID: seasonId})
 	return res.Error == nil
 }
