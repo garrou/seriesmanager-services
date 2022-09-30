@@ -2,19 +2,37 @@ package repositories
 
 import (
 	"gorm.io/gorm"
-	"seriesmanager-services/database"
 	"seriesmanager-services/dto"
 	"seriesmanager-services/entities"
 )
 
-func SaveSeries(series entities.Series) entities.Series {
-	database.Db.Save(&series)
+type SeriesRepository interface {
+	Exists(sid int, userId string) *gorm.DB
+	Save(series entities.Series) entities.Series
+	FindByUserIdSeriesId(userId string, seriesId int) interface{}
+	FindByUserId(userId string) []entities.Series
+	FindByUserIdAndWatching(userId string) []entities.Series
+	FindByUserIdAndName(userId, name string) []entities.Series
+	FindInfosBySeriesId(userId string, seriesId int) dto.SeriesInfoDto
+	DeleteByUserBySeriesId(userId string, seriesId int) bool
+}
+
+type seriesRepository struct {
+	db *gorm.DB
+}
+
+func NewSeriesRepository(db *gorm.DB) SeriesRepository {
+	return &seriesRepository{db: db}
+}
+
+func (s *seriesRepository) Save(series entities.Series) entities.Series {
+	s.db.Save(&series)
 	return series
 }
 
-func FindByUserId(userId string) []entities.Series {
+func (s *seriesRepository) FindByUserId(userId string) []entities.Series {
 	var series []entities.Series
-	res := database.Db.
+	res := s.db.
 		Order("added_at DESC").
 		Find(&series, "user_id = ?", userId)
 
@@ -24,9 +42,9 @@ func FindByUserId(userId string) []entities.Series {
 	return nil
 }
 
-func FindByUserIdAndWatching(userId string) []entities.Series {
+func (s *seriesRepository) FindByUserIdAndWatching(userId string) []entities.Series {
 	var series []entities.Series
-	res := database.Db.
+	res := s.db.
 		Order("title").
 		Find(&series, "user_id = ? AND is_watching = TRUE", userId)
 
@@ -36,9 +54,9 @@ func FindByUserIdAndWatching(userId string) []entities.Series {
 	return nil
 }
 
-func FindByUserIdAndName(userId, title string) []entities.Series {
+func (s *seriesRepository) FindByUserIdAndName(userId, title string) []entities.Series {
 	var series []entities.Series
-	res := database.Db.Find(&series, "user_id = ? AND UPPER(title) LIKE UPPER(?)", userId, "%"+title+"%")
+	res := s.db.Find(&series, "user_id = ? AND UPPER(title) LIKE UPPER(?)", userId, "%"+title+"%")
 
 	if res.Error == nil {
 		return series
@@ -46,14 +64,14 @@ func FindByUserIdAndName(userId, title string) []entities.Series {
 	return nil
 }
 
-func SeriesExists(sid int, userId string) *gorm.DB {
+func (s *seriesRepository) Exists(sid int, userId string) *gorm.DB {
 	var series entities.Series
-	return database.Db.Take(&series, "sid = ? AND user_id = ?", sid, userId)
+	return s.db.Take(&series, "sid = ? AND user_id = ?", sid, userId)
 }
 
-func FindInfosBySeriesId(userId string, seriesId int) dto.SeriesInfoDto {
+func (s *seriesRepository) FindInfosBySeriesId(userId string, seriesId int) dto.SeriesInfoDto {
 	var infos dto.SeriesInfoDto
-	database.Db.
+	s.db.
 		Model(&entities.Series{}).
 		Select(`
 series.id, 
@@ -70,16 +88,16 @@ is_watching AS watching`).
 	return infos
 }
 
-func DeleteByUserBySeriesId(userId string, seriesId int) bool {
-	res := database.Db.
+func (s *seriesRepository) DeleteByUserBySeriesId(userId string, seriesId int) bool {
+	res := s.db.
 		Select("Seasons").
 		Where("user_id = ? AND id = ?", userId, seriesId).
 		Delete(&entities.Series{ID: seriesId})
 	return res.Error == nil
 }
 
-func FindByUserIdSeriesId(userId string, seriesId int) interface{} {
+func (s *seriesRepository) FindByUserIdSeriesId(userId string, seriesId int) interface{} {
 	var series entities.Series
-	database.Db.Find(&series, "user_id = ? AND id = ?", userId, seriesId)
+	s.db.Find(&series, "user_id = ? AND id = ?", userId, seriesId)
 	return series
 }

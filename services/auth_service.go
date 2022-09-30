@@ -9,7 +9,23 @@ import (
 	"time"
 )
 
-func Register(user dto.UserCreateDto) dto.UserDto {
+type AuthService interface {
+	Register(user dto.UserCreateDto) dto.UserDto
+	Login(email, password string) interface{}
+	IsDuplicateEmail(email string) bool
+}
+
+type authService struct {
+	userRepository repositories.UserRepository
+}
+
+func NewAuthService(userRepository repositories.UserRepository) AuthService {
+	return &authService{
+		userRepository: userRepository,
+	}
+}
+
+func (a *authService) Register(user dto.UserCreateDto) dto.UserDto {
 	toCreate := entities.User{
 		ID:       uuid.New().String(),
 		Username: user.Username,
@@ -17,7 +33,7 @@ func Register(user dto.UserCreateDto) dto.UserDto {
 		Password: helpers.HashPassword(user.Password),
 		JoinedAt: time.Now(),
 	}
-	created := repositories.SaveUser(toCreate)
+	created := a.userRepository.Save(toCreate)
 
 	return dto.UserDto{
 		Username: created.Username,
@@ -27,8 +43,8 @@ func Register(user dto.UserCreateDto) dto.UserDto {
 	}
 }
 
-func Login(email, password string) interface{} {
-	res := repositories.FindUserByEmail(email)
+func (a *authService) Login(email, password string) interface{} {
+	res := a.userRepository.FindByEmail(email)
 
 	if user, ok := res.(entities.User); ok {
 		same := helpers.ComparePassword(user.Password, password)
@@ -41,7 +57,7 @@ func Login(email, password string) interface{} {
 	return false
 }
 
-func IsDuplicateEmail(email string) bool {
-	res := repositories.UserExists(email)
+func (a *authService) IsDuplicateEmail(email string) bool {
+	res := a.userRepository.Exists(email)
 	return res.Error == nil
 }

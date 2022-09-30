@@ -11,14 +11,36 @@ import (
 	"sync"
 )
 
-func GetDistinctBySeriesId(userId string, seriesId int) []dto.SeasonDto {
-	res := repositories.FindByUserIdSeriesId(userId, seriesId)
+type SeasonService interface {
+	GetDistinctBySeriesId(userId string, seriesId int) []dto.SeasonDto
+	GetInfosBySeasonBySeriesId(userId string, seriesId, number int) []dto.SeasonInfosDto
+	GetDetailsSeasonsNbViewed(userId string, seriesId int) []dto.StatDto
+	AddSeasonsBySeries(userId string, seriesId int, seasons dto.SeasonsCreateDto) interface{}
+	GetToContinue(userId string) []dto.SeriesToContinueDto
+	UpdateSeason(userId string, updateDto dto.SeasonUpdateDto) interface{}
+	DeleteSeason(userId string, seasonId int) bool
+}
+
+type seasonService struct {
+	seasonRepository repositories.SeasonRepository
+	seriesRepository repositories.SeriesRepository
+}
+
+func NewSeasonService(seasonRepository repositories.SeasonRepository, seriesRepository repositories.SeriesRepository) SeasonService {
+	return &seasonService{
+		seasonRepository: seasonRepository,
+		seriesRepository: seriesRepository,
+	}
+}
+
+func (s *seasonService) GetDistinctBySeriesId(userId string, seriesId int) []dto.SeasonDto {
+	res := s.seriesRepository.FindByUserIdSeriesId(userId, seriesId)
 
 	if _, ok := res.(entities.Series); !ok {
 		return nil
 	}
 
-	dbSeasons := repositories.FindDistinctBySeriesId(seriesId)
+	dbSeasons := s.seasonRepository.FindDistinctBySeriesId(seriesId)
 	var seasons []dto.SeasonDto
 
 	for _, season := range dbSeasons {
@@ -34,22 +56,22 @@ func GetDistinctBySeriesId(userId string, seriesId int) []dto.SeasonDto {
 	return seasons
 }
 
-func GetInfosBySeasonBySeriesId(userId string, seriesId, number int) []dto.SeasonInfosDto {
-	return repositories.FindInfosBySeriesIdBySeason(userId, seriesId, number)
+func (s *seasonService) GetInfosBySeasonBySeriesId(userId string, seriesId, number int) []dto.SeasonInfosDto {
+	return s.seasonRepository.FindInfosBySeriesIdBySeason(userId, seriesId, number)
 }
 
-func GetDetailsSeasonsNbViewed(userId string, seriesId int) []dto.StatDto {
-	return repositories.FindDetailsSeasonsNbViewed(userId, seriesId)
+func (s *seasonService) GetDetailsSeasonsNbViewed(userId string, seriesId int) []dto.StatDto {
+	return s.seasonRepository.FindDetailsSeasonsNbViewed(userId, seriesId)
 }
 
-func AddSeasonsBySeries(userId string, seriesId int, seasons dto.SeasonsCreateDto) interface{} {
-	res := repositories.FindByUserIdSeriesId(userId, seriesId)
+func (s *seasonService) AddSeasonsBySeries(userId string, seriesId int, seasons dto.SeasonsCreateDto) interface{} {
+	res := s.seriesRepository.FindByUserIdSeriesId(userId, seriesId)
 
 	if _, ok := res.(entities.Series); !ok {
 		return nil
 	}
 	for _, season := range seasons.Seasons {
-		repositories.SaveSeason(entities.Season{
+		s.seasonRepository.Save(entities.Season{
 			Number:   season.Number,
 			Episodes: season.Episodes,
 			Image:    season.Image,
@@ -60,18 +82,18 @@ func AddSeasonsBySeries(userId string, seriesId int, seasons dto.SeasonsCreateDt
 	return seasons
 }
 
-func GetToContinue(userId string) []dto.SeriesToContinueDto {
+func (s *seasonService) GetToContinue(userId string) []dto.SeriesToContinueDto {
 	var seasons dto.SearchSeasonsDto
 	var toContinue []dto.SeriesToContinueDto
 	var wg sync.WaitGroup
-	series := repositories.FindByUserIdAndWatching(userId)
+	series := s.seriesRepository.FindByUserIdAndWatching(userId)
 	apiKey := os.Getenv("API_KEY")
 
 	for _, userSeries := range series {
 		wg.Add(1)
 		go func(series entities.Series) {
 			defer wg.Done()
-			userSeasons := repositories.FindDistinctBySeriesId(series.ID)
+			userSeasons := s.seasonRepository.FindDistinctBySeriesId(series.ID)
 			body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/seasons?id=%d&key=%s", series.Sid, apiKey))
 
 			if err := json.Unmarshal(body, &seasons); err != nil {
@@ -95,21 +117,21 @@ func GetToContinue(userId string) []dto.SeriesToContinueDto {
 	return toContinue
 }
 
-func UpdateSeason(userId string, updateDto dto.SeasonUpdateDto) interface{} {
-	res := repositories.FindSeasonById(userId, updateDto.Id)
+func (s *seasonService) UpdateSeason(userId string, updateDto dto.SeasonUpdateDto) interface{} {
+	res := s.seasonRepository.FindById(userId, updateDto.Id)
 
 	if season, ok := res.(entities.Season); ok {
 		season.ViewedAt = updateDto.ViewedAt
-		return repositories.SaveSeason(season)
+		return s.seasonRepository.Save(season)
 	}
 	return nil
 }
 
-func DeleteSeason(userId string, seasonId int) bool {
-	res := repositories.FindSeasonById(userId, seasonId)
+func (s *seasonService) DeleteSeason(userId string, seasonId int) bool {
+	res := s.seasonRepository.FindById(userId, seasonId)
 
 	if _, ok := res.(entities.Season); ok {
-		return repositories.DeleteSeasonById(seasonId)
+		return s.seasonRepository.DeleteById(seasonId)
 	}
 	return false
 }

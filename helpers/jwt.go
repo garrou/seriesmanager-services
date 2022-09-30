@@ -19,22 +19,22 @@ type jwtClaims struct {
 	jwt.StandardClaims
 }
 
-var (
-	secretKey = os.Getenv("JWT_SECRET")
-	issuer    = os.Getenv("JWT_ISSUER")
-)
+type jwtHelper struct {
+	secretKey string
+	issuer    string
+}
 
-func GenerateToken(userId string) string {
+func (j *jwtHelper) GenerateToken(userId string) string {
 	claims := &jwtClaims{
 		userId,
 		jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
 			ExpiresAt: time.Now().AddDate(0, 0, 1).Unix(),
-			Issuer:    issuer,
+			Issuer:    j.issuer,
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	t, err := token.SignedString([]byte(secretKey))
+	t, err := token.SignedString([]byte(j.secretKey))
 
 	if err != nil {
 		panic(err.Error())
@@ -42,17 +42,24 @@ func GenerateToken(userId string) string {
 	return t
 }
 
-func ValidateToken(token string) (*jwt.Token, error) {
+func (j *jwtHelper) ValidateToken(token string) (*jwt.Token, error) {
 	return jwt.Parse(token, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method %v", t.Header["alg"])
 		}
-		return []byte(secretKey), nil
+		return []byte(j.secretKey), nil
 	})
 }
 
-func ExtractUserId(authorization string) string {
-	token, _ := ValidateToken(authorization)
+func (j *jwtHelper) ExtractUserId(authorization string) string {
+	token, _ := j.ValidateToken(authorization)
 	claims := token.Claims.(jwt.MapClaims)
 	return fmt.Sprintf("%s", claims["id"])
+}
+
+func NewJwtHelper() JwtHelper {
+	return &jwtHelper{
+		secretKey: os.Getenv("JWT_SECRET"),
+		issuer:    os.Getenv("JWT_ISSUER"),
+	}
 }

@@ -6,13 +6,41 @@ import (
 	"seriesmanager-services/dto"
 	"seriesmanager-services/entities"
 	"seriesmanager-services/helpers"
+	"seriesmanager-services/middlewares"
 	"seriesmanager-services/services"
 )
 
-// GetUser gets the authenticated user
-func GetUser(ctx *gin.Context) {
-	userId := helpers.ExtractUserId(ctx.GetHeader("Authorization"))
-	res := services.GetUser(userId)
+type UserController interface {
+	Routes(e *gin.Engine)
+	Get(ctx *gin.Context)
+	UpdateBanner(ctx *gin.Context)
+	UpdateProfile(ctx *gin.Context)
+	UpdatePassword(ctx *gin.Context)
+}
+
+type userController struct {
+	userService services.UserService
+	jwtHelper   helpers.JwtHelper
+}
+
+func NewUserController(userService services.UserService, jwtHelper helpers.JwtHelper) UserController {
+	return &userController{userService: userService, jwtHelper: jwtHelper}
+}
+
+func (u *userController) Routes(e *gin.Engine) {
+	routes := e.Group("/api/user", middlewares.AuthorizeJwt(u.jwtHelper))
+	{
+		routes.GET("/", u.Get)
+		routes.PATCH("/profile", u.UpdateProfile)
+		routes.PATCH("/banner", u.UpdateBanner)
+		routes.PATCH("/password", u.UpdatePassword)
+	}
+}
+
+// Get gets the authenticated user
+func (u *userController) Get(ctx *gin.Context) {
+	userId := u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	res := u.userService.Get(userId)
 
 	if user, ok := res.(entities.User); ok {
 		response := helpers.NewResponse("", dto.UserDto{
@@ -28,13 +56,13 @@ func GetUser(ctx *gin.Context) {
 }
 
 // UpdateBanner updates the banner of the authenticated user
-func UpdateBanner(ctx *gin.Context) {
+func (u *userController) UpdateBanner(ctx *gin.Context) {
 	var body struct {
 		Banner string `json:"banner"`
 	}
 	_ = ctx.Bind(&body)
-	userId := helpers.ExtractUserId(ctx.GetHeader("Authorization"))
-	res := services.UpdateBanner(userId, body.Banner)
+	userId := u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	res := u.userService.UpdateBanner(userId, body.Banner)
 
 	if _, ok := res.(entities.User); ok {
 		ctx.JSON(http.StatusOK, helpers.NewResponse("Bannière modifiée", nil))
@@ -44,15 +72,15 @@ func UpdateBanner(ctx *gin.Context) {
 }
 
 // UpdateProfile updates the authenticated user account
-func UpdateProfile(ctx *gin.Context) {
+func (u *userController) UpdateProfile(ctx *gin.Context) {
 	var userDto dto.UserUpdateProfileDto
 
 	if errDto := ctx.ShouldBind(&userDto); errDto != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
 		return
 	}
-	userDto.Id = helpers.ExtractUserId(ctx.GetHeader("Authorization"))
-	res := services.UpdateProfile(userDto)
+	userDto.Id = u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	res := u.userService.UpdateProfile(userDto)
 
 	if _, ok := res.(entities.User); ok {
 		ctx.JSON(http.StatusOK, helpers.NewResponse("Profil modifié", nil))
@@ -62,15 +90,15 @@ func UpdateProfile(ctx *gin.Context) {
 }
 
 // UpdatePassword updates authenticated user password
-func UpdatePassword(ctx *gin.Context) {
+func (u *userController) UpdatePassword(ctx *gin.Context) {
 	var userDto dto.UserUpdatePasswordDto
 
 	if errDto := ctx.ShouldBind(&userDto); errDto != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
 		return
 	}
-	userDto.Id = helpers.ExtractUserId(ctx.GetHeader("Authorization"))
-	res := services.UpdatePassword(userDto)
+	userDto.Id = u.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	res := u.userService.UpdatePassword(userDto)
 
 	if _, ok := res.(entities.User); ok {
 		ctx.JSON(http.StatusOK, helpers.NewResponse("Mot de passe modifié", nil))

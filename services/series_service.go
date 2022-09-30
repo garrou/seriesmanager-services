@@ -7,7 +7,27 @@ import (
 	"time"
 )
 
-func AddSeries(series dto.SeriesCreateDto) dto.SeriesDto {
+type SeriesService interface {
+	AddSeries(series dto.SeriesCreateDto) dto.SeriesDto
+	GetAll(userId string) []dto.SeriesPreviewDto
+	GetByUserIdByName(userId, title string) []dto.SeriesPreviewDto
+	IsDuplicateSeries(series dto.SeriesCreateDto) bool
+	GetInfosBySeriesId(userId string, seriesId int) dto.SeriesInfoDto
+	DeleteByUserIdBySeriesId(userId string, seriesId int) bool
+	UpdateWatching(userId string, seriesId int) interface{}
+}
+
+type seriesService struct {
+	seriesRepository repositories.SeriesRepository
+}
+
+func NewSeriesService(seriesRepository repositories.SeriesRepository) SeriesService {
+	return &seriesService{
+		seriesRepository: seriesRepository,
+	}
+}
+
+func (s *seriesService) AddSeries(series dto.SeriesCreateDto) dto.SeriesDto {
 	toCreate := entities.Series{
 		Sid:           series.Sid,
 		Title:         series.Title,
@@ -16,7 +36,7 @@ func AddSeries(series dto.SeriesCreateDto) dto.SeriesDto {
 		AddedAt:       time.Now(),
 		UserID:        series.UserId,
 	}
-	created := repositories.SaveSeries(toCreate)
+	created := s.seriesRepository.Save(toCreate)
 
 	return dto.SeriesDto{
 		ID:            created.ID,
@@ -28,9 +48,9 @@ func AddSeries(series dto.SeriesCreateDto) dto.SeriesDto {
 	}
 }
 
-func GetAllSeries(userId string) []dto.SeriesPreviewDto {
+func (s *seriesService) GetAll(userId string) []dto.SeriesPreviewDto {
 	var series []dto.SeriesPreviewDto
-	dbSeries := repositories.FindByUserId(userId)
+	dbSeries := s.seriesRepository.FindByUserId(userId)
 
 	for _, s := range dbSeries {
 		series = append(series, dto.SeriesPreviewDto{
@@ -44,9 +64,9 @@ func GetAllSeries(userId string) []dto.SeriesPreviewDto {
 	return series
 }
 
-func GetByUserIdByName(userId, title string) []dto.SeriesPreviewDto {
+func (s *seriesService) GetByUserIdByName(userId, title string) []dto.SeriesPreviewDto {
 	var series []dto.SeriesPreviewDto
-	dbSeries := repositories.FindByUserIdAndName(userId, title)
+	dbSeries := s.seriesRepository.FindByUserIdAndName(userId, title)
 
 	for _, s := range dbSeries {
 		series = append(series, dto.SeriesPreviewDto{
@@ -60,25 +80,25 @@ func GetByUserIdByName(userId, title string) []dto.SeriesPreviewDto {
 	return series
 }
 
-func IsDuplicateSeries(series dto.SeriesCreateDto) bool {
-	res := repositories.SeriesExists(series.Sid, series.UserId)
+func (s *seriesService) IsDuplicateSeries(series dto.SeriesCreateDto) bool {
+	res := s.seriesRepository.Exists(series.Sid, series.UserId)
 	return res.Error == nil
 }
 
-func GetInfosBySeriesId(userId string, seriesId int) dto.SeriesInfoDto {
-	return repositories.FindInfosBySeriesId(userId, seriesId)
+func (s *seriesService) GetInfosBySeriesId(userId string, seriesId int) dto.SeriesInfoDto {
+	return s.seriesRepository.FindInfosBySeriesId(userId, seriesId)
 }
 
-func DeleteByUserIdBySeriesId(userId string, seriesId int) bool {
-	return repositories.DeleteByUserBySeriesId(userId, seriesId)
+func (s *seriesService) DeleteByUserIdBySeriesId(userId string, seriesId int) bool {
+	return s.seriesRepository.DeleteByUserBySeriesId(userId, seriesId)
 }
 
-func UpdateWatching(userId string, seriesId int) interface{} {
-	res := repositories.FindByUserIdSeriesId(userId, seriesId)
+func (s *seriesService) UpdateWatching(userId string, seriesId int) interface{} {
+	res := s.seriesRepository.FindByUserIdSeriesId(userId, seriesId)
 
 	if series, ok := res.(entities.Series); ok {
 		series.IsWatching = !series.IsWatching
-		return repositories.SaveSeries(series)
+		return s.seriesRepository.Save(series)
 	}
 	return nil
 }

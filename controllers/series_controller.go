@@ -6,66 +6,99 @@ import (
 	"seriesmanager-services/dto"
 	"seriesmanager-services/entities"
 	"seriesmanager-services/helpers"
+	"seriesmanager-services/middlewares"
 	"seriesmanager-services/services"
 	"strconv"
 )
 
-// CreateSeries adds a series to the authenticated user account
-func CreateSeries(ctx *gin.Context) {
+type SeriesController interface {
+	Routes(e *gin.Engine)
+	Post(ctx *gin.Context)
+	GetAll(ctx *gin.Context)
+	GetByName(ctx *gin.Context)
+	GetInfosById(ctx *gin.Context)
+	Delete(ctx *gin.Context)
+	UpdateWatching(ctx *gin.Context)
+}
+
+type seriesController struct {
+	seriesService services.SeriesService
+	jwtHelper     helpers.JwtHelper
+}
+
+func NewSeriesController(seriesService services.SeriesService, jwtHelper helpers.JwtHelper) SeriesController {
+	return &seriesController{seriesService: seriesService, jwtHelper: jwtHelper}
+}
+
+func (s *seriesController) Routes(e *gin.Engine) {
+	routes := e.Group("/api/series", middlewares.AuthorizeJwt(s.jwtHelper))
+	{
+		routes.POST("/", s.Post)
+		routes.GET("/", s.GetAll)
+		routes.GET("/names", s.GetByName)
+		routes.GET("/names/:name", s.GetByName)
+		routes.GET("/:id", s.GetInfosById)
+		routes.DELETE("/:id", s.Delete)
+		routes.PATCH("/:id/watching", s.UpdateWatching)
+	}
+}
+
+// Post adds a series to the authenticated user account
+func (s *seriesController) Post(ctx *gin.Context) {
 	var seriesDto dto.SeriesCreateDto
 
 	if errDto := ctx.ShouldBind(&seriesDto); errDto != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
 		return
 	}
-	userId := helpers.ExtractUserId(ctx.GetHeader("Authorization"))
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	seriesDto.UserId = userId
 
-	if services.IsDuplicateSeries(seriesDto) {
+	if s.seriesService.IsDuplicateSeries(seriesDto) {
 		ctx.AbortWithStatusJSON(http.StatusConflict, helpers.NewResponse("Vous avez déjà ajouté cette série", nil))
 	} else {
-		series := services.AddSeries(seriesDto)
+		series := s.seriesService.AddSeries(seriesDto)
 		ctx.JSON(http.StatusCreated, helpers.NewResponse("Série ajoutée", series))
 	}
 }
 
-// GetAllSeries returns all series of the authenticated user
-func GetAllSeries(ctx *gin.Context) {
-	userId := helpers.ExtractUserId(ctx.GetHeader("Authorization"))
-	series := services.GetAllSeries(userId)
+// GetAll returns all series of the authenticated user
+func (s *seriesController) GetAll(ctx *gin.Context) {
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	series := s.seriesService.GetAll(userId)
 	ctx.JSON(http.StatusOK, helpers.NewResponse("", series))
 }
 
-// GetSeriesByName returns all series with title matching
-func GetSeriesByName(ctx *gin.Context) {
-	userId := helpers.ExtractUserId(ctx.GetHeader("Authorization"))
-	series := services.GetByUserIdByName(userId, ctx.Param("name"))
+// GetByName returns all series with title matching
+func (s *seriesController) GetByName(ctx *gin.Context) {
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	series := s.seriesService.GetByUserIdByName(userId, ctx.Param("name"))
 	ctx.JSON(http.StatusOK, helpers.NewResponse("", series))
 }
 
-// GetSeriesInfosById returns series by id
-func GetSeriesInfosById(ctx *gin.Context) {
+// GetInfosById returns series by id
+func (s *seriesController) GetInfosById(ctx *gin.Context) {
 	id, err := strconv.Atoi(ctx.Param("id"))
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
 		return
 	}
-	userId := helpers.ExtractUserId(ctx.GetHeader("Authorization"))
-	infos := services.GetInfosBySeriesId(userId, id)
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
+	infos := s.seriesService.GetInfosBySeriesId(userId, id)
 	ctx.JSON(http.StatusOK, helpers.NewResponse("", infos))
 }
 
-// DeleteSeries deletes series with userId and id
-func DeleteSeries(ctx *gin.Context) {
-	userId := helpers.ExtractUserId(ctx.GetHeader("Authorization"))
+// Delete deletes series with userId and id
+func (s *seriesController) Delete(ctx *gin.Context) {
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	seriesId, err := strconv.Atoi(ctx.Param("id"))
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
 		return
 	}
-	isDeleted := services.DeleteByUserIdBySeriesId(userId, seriesId)
+	isDeleted := s.seriesService.DeleteByUserIdBySeriesId(userId, seriesId)
 
 	if isDeleted {
 		ctx.JSON(http.StatusOK, helpers.NewResponse("Série supprimée", nil))
@@ -75,15 +108,15 @@ func DeleteSeries(ctx *gin.Context) {
 }
 
 // UpdateWatching updates field IsWatching to avoid api call when get series to continue
-func UpdateWatching(ctx *gin.Context) {
-	userId := helpers.ExtractUserId(ctx.GetHeader("Authorization"))
+func (s *seriesController) UpdateWatching(ctx *gin.Context) {
+	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
 	seriesId, err := strconv.Atoi(ctx.Param("id"))
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, helpers.NewResponse("Données erronées", nil))
 		return
 	}
-	res := services.UpdateWatching(userId, seriesId)
+	res := s.seriesService.UpdateWatching(userId, seriesId)
 
 	if _, ok := res.(entities.Series); ok {
 		ctx.JSON(http.StatusOK, helpers.NewResponse("Série modifiée", nil))

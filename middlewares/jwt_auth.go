@@ -7,7 +7,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func AuthorizeJwt() gin.HandlerFunc {
+func AuthorizeJwt(jwtHelper helpers.JwtHelper) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 
@@ -16,7 +16,7 @@ func AuthorizeJwt() gin.HandlerFunc {
 			c.AbortWithStatusJSON(http.StatusBadRequest, response)
 			return
 		}
-		token, err := helpers.ValidateToken(authHeader)
+		token, err := jwtHelper.ValidateToken(authHeader)
 
 		if !token.Valid || err != nil {
 			response := helpers.NewResponse("Token invalide", nil)
