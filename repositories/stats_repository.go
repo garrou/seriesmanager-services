@@ -43,10 +43,11 @@ func (s *statsRepository) FindNbSeasonsByMonths(userId string) []dto.StatDto {
 	var stats []dto.StatDto
 	s.db.
 		Model(entities.Series{}).
-		Select("TO_CHAR(viewed_at, 'Month') AS label, COUNT(*) AS value").
+		Select("TO_CHAR(viewed_at, 'Mon') AS label, COUNT(*) AS value, EXTRACT(MONTH FROM viewed_at) AS month").
 		Joins("JOIN seasons ON seasons.series_id = series.id").
 		Where("user_id = ?", userId).
-		Group("label").
+		Group("label, month").
+		Order("month").
 		Scan(&stats)
 	return stats
 }
