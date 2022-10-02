@@ -65,7 +65,19 @@ func (s *seriesController) Post(ctx *gin.Context) {
 // GetAll returns all series of the authenticated user
 func (s *seriesController) GetAll(ctx *gin.Context) {
 	userId := s.jwtHelper.ExtractUserId(ctx.GetHeader("Authorization"))
-	series := s.seriesService.GetAll(userId)
+	query, ok := ctx.GetQuery("page")
+
+	if !ok {
+		ctx.JSON(http.StatusBadRequest, helpers.NewResponse("Données invalides", nil))
+		return
+	}
+	page, err := strconv.Atoi(query)
+
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, helpers.NewResponse("Données invalides", nil))
+		return
+	}
+	series := s.seriesService.GetAll(userId, page)
 	ctx.JSON(http.StatusOK, helpers.NewResponse("", series))
 }
 

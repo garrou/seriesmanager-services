@@ -29,7 +29,7 @@ func (j *jwtHelper) GenerateToken(userId string) string {
 		userId,
 		jwt.StandardClaims{
 			IssuedAt:  time.Now().Unix(),
-			ExpiresAt: time.Now().AddDate(0, 0, 1).Unix(),
+			ExpiresAt: time.Now().AddDate(1, 0, 0).Unix(),
 			Issuer:    j.issuer,
 		},
 	}
