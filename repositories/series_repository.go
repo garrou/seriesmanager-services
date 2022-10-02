@@ -10,7 +10,7 @@ type SeriesRepository interface {
 	Exists(sid int, userId string) *gorm.DB
 	Save(series entities.Series) entities.Series
 	FindByUserIdSeriesId(userId string, seriesId int) interface{}
-	FindByUserId(userId string) []entities.Series
+	FindByUserId(userId string, page int) []entities.Series
 	FindByUserIdAndWatching(userId string) []entities.Series
 	FindByUserIdAndName(userId, name string) []entities.Series
 	FindInfosBySeriesId(userId string, seriesId int) dto.SeriesInfoDto
@@ -30,10 +30,11 @@ func (s *seriesRepository) Save(series entities.Series) entities.Series {
 	return series
 }
 
-func (s *seriesRepository) FindByUserId(userId string) []entities.Series {
+func (s *seriesRepository) FindByUserId(userId string, page int) []entities.Series {
 	var series []entities.Series
 	res := s.db.
 		Order("added_at DESC").
+		Limit(8*page).
 		Find(&series, "user_id = ?", userId)
 
 	if res.Error == nil {

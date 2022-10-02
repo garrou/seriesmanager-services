@@ -9,7 +9,7 @@ import (
 
 type SeriesService interface {
 	AddSeries(series dto.SeriesCreateDto) dto.SeriesDto
-	GetAll(userId string) []dto.SeriesPreviewDto
+	GetAll(userId string, page int) []dto.SeriesPreviewDto
 	GetByUserIdByName(userId, title string) []dto.SeriesPreviewDto
 	IsDuplicateSeries(series dto.SeriesCreateDto) bool
 	GetInfosBySeriesId(userId string, seriesId int) dto.SeriesInfoDto
@@ -48,9 +48,9 @@ func (s *seriesService) AddSeries(series dto.SeriesCreateDto) dto.SeriesDto {
 	}
 }
 
-func (s *seriesService) GetAll(userId string) []dto.SeriesPreviewDto {
+func (s *seriesService) GetAll(userId string, page int) []dto.SeriesPreviewDto {
 	var series []dto.SeriesPreviewDto
-	dbSeries := s.seriesRepository.FindByUserId(userId)
+	dbSeries := s.seriesRepository.FindByUserId(userId, page)
 
 	for _, s := range dbSeries {
 		series = append(series, dto.SeriesPreviewDto{

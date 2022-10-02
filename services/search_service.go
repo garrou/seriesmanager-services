@@ -15,6 +15,8 @@ type SearchService interface {
 	SearchSeasonsBySid(sid int) dto.SearchSeasonsDto
 	SearchEpisodesBySidBySeason(sid, season int) dto.SearchEpisodesDto
 	SearchImagesBySeriesName(name string) []string
+	SearchCharactersBySid(sid string) interface{}
+	SearchActorInfoById(id string) interface{}
 }
 
 type searchService struct {
@@ -88,4 +90,27 @@ func (s *searchService) SearchImagesBySeriesName(name string) []string {
 		}
 	}
 	return urls
+}
+
+func (s *searchService) SearchCharactersBySid(sid string) interface{} {
+	var characters models.Characters
+
+	apiKey := os.Getenv("API_KEY")
+	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/shows/characters?id=%s&key=%s", sid, apiKey))
+
+	if err := json.Unmarshal(body, &characters); err != nil {
+		panic(err.Error())
+	}
+	return characters.Characters
+}
+
+func (s *searchService) SearchActorInfoById(id string) interface{} {
+	var actor models.Actor
+	apiKey := os.Getenv("API_KEY")
+	body := helpers.HttpGet(fmt.Sprintf("https://api.betaseries.com/persons/person?id=%s&key=%s", id, apiKey))
+
+	if err := json.Unmarshal(body, &actor); err != nil {
+		panic(err.Error())
+	}
+	return actor.Person
 }

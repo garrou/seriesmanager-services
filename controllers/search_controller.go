@@ -17,6 +17,8 @@ type SearchController interface {
 	GetEpisodesBySidBySeason(ctx *gin.Context)
 	Get(ctx *gin.Context)
 	GetImagesBySeriesName(ctx *gin.Context)
+	GetCharactersBySid(ctx *gin.Context)
+	GetActorInfoById(ctx *gin.Context)
 }
 
 type searchController struct {
@@ -37,6 +39,8 @@ func (s *searchController) Routes(e *gin.Engine) {
 		routes.GET("/series/:sid/seasons", s.GetSeasonsBySid)
 		routes.GET("/series/:sid/seasons/:number/episodes", s.GetEpisodesBySidBySeason)
 		routes.GET("/names/:name/images", s.GetImagesBySeriesName)
+		routes.GET("/series/:sid/characters", s.GetCharactersBySid)
+		routes.GET("/actors/:id", s.GetActorInfoById)
 	}
 }
 
@@ -87,4 +91,16 @@ func (s *searchController) GetEpisodesBySidBySeason(ctx *gin.Context) {
 func (s *searchController) GetImagesBySeriesName(ctx *gin.Context) {
 	images := s.searchService.SearchImagesBySeriesName(ctx.Param("name"))
 	ctx.JSON(http.StatusOK, helpers.NewResponse("", images))
+}
+
+// GetCharactersBySid calls api to get series characters with his sid
+func (s *searchController) GetCharactersBySid(ctx *gin.Context) {
+	characters := s.searchService.SearchCharactersBySid(ctx.Param("sid"))
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", characters))
+}
+
+// GetActorInfoById calls api to get actor infos with his id
+func (s *searchController) GetActorInfoById(ctx *gin.Context) {
+	actor := s.searchService.SearchActorInfoById(ctx.Param("id"))
+	ctx.JSON(http.StatusOK, helpers.NewResponse("", actor))
 }
