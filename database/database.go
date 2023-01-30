@@ -44,5 +44,3 @@ func Close(db *gorm.DB) {
 		panic(errClose.Error())
 	}
 }
-
-// TODO: delete, add with userId each time
